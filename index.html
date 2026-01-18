@@ -193,6 +193,226 @@
             to { transform: rotate(360deg); }
         }
 
+        /* ===== Pulsante Admin (Versione 83) ===== */
+        .admin-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            z-index: 1000;
+            font-size: 14px;
+        }
+
+        .admin-button:hover {
+            transform: scale(1.05);
+        }
+
+        /* ===== Admin Modal (Versione 83) ===== */
+        .admin-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .admin-modal-content {
+            background: white;
+            margin: 5% auto;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 85vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .admin-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-modal-header h2 {
+            margin: 0;
+            font-size: 1.3em;
+        }
+
+        .admin-close {
+            font-size: 28px;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+
+        .admin-close:hover {
+            opacity: 1;
+        }
+
+        .admin-modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .admin-toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .admin-add-btn, .admin-refresh-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .admin-add-btn {
+            background: linear-gradient(135deg, #00c851, #007e33);
+            color: white;
+        }
+
+        .admin-refresh-btn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .admin-add-btn:hover, .admin-refresh-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .admin-users-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .admin-user-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: #333;
+        }
+
+        .user-role, .role-badge {
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .role-admin, .user-role.role-admin {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .role-manager, .user-role.role-manager {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+            color: #333;
+        }
+
+        .role-user, .user-role.role-user {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-edit, .btn-delete {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+
+        .btn-edit {
+            background: #e3f2fd;
+        }
+
+        .btn-delete {
+            background: #ffebee;
+        }
+
+        .btn-delete:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-edit:hover, .btn-delete:hover:not(:disabled) {
+            transform: scale(1.1);
+        }
+
+        .admin-legend {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .admin-legend .role-badge {
+            margin-right: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .admin-button {
+                top: 160px;
+                left: 10px;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+            
+            .admin-modal-content {
+                margin: 2% auto;
+                width: 95%;
+                max-height: 90vh;
+            }
+        }
+
 
         /* ===== Pulsante chiudi tutto (Versione 64) ===== */
         .close-all-btn {
@@ -1533,6 +1753,7 @@
         <button class="logout-button" onclick="handleLogout()">Esci</button>
         <button class="log-button" onclick="openLogModal()">📋 Registro</button>
         <button class="sync-button" onclick="manualSync()" title="Sincronizza dati">🔄</button>
+        <button class="admin-button" id="adminButton" onclick="openAdminPanel()" style="display:none;">👥 Admin</button>
         
         <div class="container">
         <h1>📊 Gestione Malaga</h1>
@@ -1692,16 +1913,34 @@
         </div>
     </div>
 
+    <!-- Admin Panel Modal -->
+    <div id="adminModal" class="admin-modal">
+        <div class="admin-modal-content">
+            <div class="admin-modal-header">
+                <h2>👥 Gestione Utenti</h2>
+                <span class="admin-close" onclick="closeAdminPanel()">&times;</span>
+            </div>
+            <div class="admin-modal-body">
+                <div class="admin-toolbar">
+                    <button class="admin-add-btn" onclick="addNewUser()">➕ Aggiungi Utente</button>
+                    <button class="admin-refresh-btn" onclick="refreshUsersList()">🔄 Aggiorna</button>
+                </div>
+                <div class="admin-users-list" id="adminUsersList">
+                    <!-- Lista utenti caricata dinamicamente -->
+                </div>
+                <div class="admin-legend">
+                    <span class="role-badge role-admin">admin</span> Accesso completo
+                    <span class="role-badge role-manager">manager</span> Gestione incassi
+                    <span class="role-badge role-user">user</span> Solo visualizzazione
+                </div>
+            </div>
+        </div>
+    </div>
+
 
     <script>
-        // Sistema di autenticazione (Versione 82 - Login persistente)
-        const users = [
-            { username: 'admin', password: 'malaga2025' },
-            { username: 'hennadiy', password: 'gestione123' },
-            { username: 'manager', password: 'manager2025' },
-            { username: 'user1', password: 'user1pass' },
-            { username: 'user2', password: 'user2pass' }
-        ];
+        // Sistema di autenticazione (Versione 83 - con gestione utenti Firestore)
+        // La variabile 'users' è definita più avanti e caricata da Firestore
 
         // Verifica se l'utente è già loggato (usa localStorage per persistenza)
         function checkAuth() {
@@ -1742,11 +1981,24 @@
         function showMainContent() {
             document.getElementById('loginContainer').style.display = 'none';
             document.getElementById('mainContent').classList.add('show');
+            // Aggiorna visibilità pulsante admin dopo un breve delay
+            // (per dare tempo a Firebase di caricare gli utenti)
+            setTimeout(updateAdminButtonVisibility, 1000);
+        }
+
+        function updateAdminButtonVisibility() {
+            const adminBtn = document.getElementById('adminButton');
+            if (adminBtn) {
+                adminBtn.style.display = isAdmin() ? 'block' : 'none';
+            }
         }
 
         function hideMainContent() {
             document.getElementById('loginContainer').style.display = 'flex';
             document.getElementById('mainContent').classList.remove('show');
+            // Nascondi pulsante admin al logout
+            const adminBtn = document.getElementById('adminButton');
+            if (adminBtn) adminBtn.style.display = 'none';
         }
 
         // Helper per ottenere username corrente
@@ -1966,7 +2218,7 @@
             if (badge) {
                 if (connected) {
                     badge.style.background = 'linear-gradient(135deg, #00c851, #007e33)';
-                    badge.textContent = '☁️ Cloud Sync';
+                    badge.textContent = '☁️ Realtime';
                 } else {
                     badge.style.background = 'linear-gradient(135deg, #ff8800, #cc6600)';
                     badge.textContent = '📱 Solo Locale';
@@ -1996,6 +2248,9 @@
             
             if (message) console.log('[Firebase]', message);
         }
+
+        // Listener realtime attivi (per poterli rimuovere se necessario)
+        window.__realtimeListeners = [];
 
         async function initFirebaseDataSync() {
             console.log('[Firebase] Inizializzazione sync...');
@@ -2032,8 +2287,13 @@
                     return false;
                 }
                 
-                console.log('[Firebase] Connesso! Caricamento dati...');
+                console.log('[Firebase] Connesso! Avvio realtime sync...');
+                
+                // Carica utenti da Firestore
+                await loadUsersFromFirestore();
+                updateAdminButtonVisibility();
 
+                // Fetch iniziale dei dati
                 for (let i = 0; i < data.length; i++) {
                     const monthLabel = data[i].month;
                     const entries = await firebaseFetchMonthEntries(monthLabel);
@@ -2054,14 +2314,294 @@
 
                 renderTable();
                 calculateStats();
-                updateConnectionStatus(true, 'Firebase connesso');
-                console.log('[Firebase] Sync completato!');
+                
+                // Avvia listener realtime
+                startRealtimeSync();
+                
+                updateConnectionStatus(true, 'Firebase connesso (Realtime)');
+                console.log('[Firebase] Realtime sync attivo!');
                 return true;
             } catch (e) {
                 console.error('[Firebase] Errore sync:', e);
                 updateConnectionStatus(false, 'Errore: ' + e.message);
                 return false;
             }
+        }
+
+        // ===== REALTIME SYNC =====
+        async function startRealtimeSync() {
+            const svc = await fbSvc();
+            if (!svc.enabled) return;
+            
+            const { db, f: F } = svc;
+            
+            // Rimuovi listener precedenti
+            window.__realtimeListeners.forEach(unsub => {
+                try { unsub(); } catch(e) {}
+            });
+            window.__realtimeListeners = [];
+            
+            // Listener per malagaDailyEntries (incassi giornalieri)
+            const entriesRef = F.collection(db, 'malagaDailyEntries');
+            const unsubEntries = F.onSnapshot(entriesRef, (snapshot) => {
+                console.log('[Realtime] Aggiornamento incassi ricevuto');
+                
+                snapshot.docChanges().forEach(change => {
+                    const e = change.doc.data();
+                    const monthLabel = e.month;
+                    const day = Number(e.day);
+                    
+                    // Trova il mese corrispondente
+                    const monthIndex = data.findIndex(m => m.month === monthLabel);
+                    if (monthIndex < 0) return;
+                    
+                    const dayIndex = data[monthIndex].dailyData.findIndex(d => Number(d.day) === day);
+                    if (dayIndex < 0) return;
+                    
+                    // Aggiorna i dati
+                    data[monthIndex].dailyData[dayIndex].value = Number(e.value) || 0;
+                    data[monthIndex].dailyData[dayIndex].photos = Array.isArray(e.photos) ? e.photos : [];
+                    
+                    // Ricalcola totale mese
+                    const monthTotal = data[monthIndex].dailyData.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+                    data[monthIndex].value = Math.round(monthTotal * 100) / 100;
+                });
+                
+                // Aggiorna UI
+                renderTable();
+                calculateStats();
+                
+                // Flash visivo per indicare aggiornamento
+                const badge = document.getElementById('connectionBadge');
+                if (badge) {
+                    badge.style.transform = 'translateX(-50%) scale(1.1)';
+                    setTimeout(() => { badge.style.transform = 'translateX(-50%) scale(1)'; }, 200);
+                }
+            }, (error) => {
+                console.error('[Realtime] Errore listener incassi:', error);
+            });
+            
+            window.__realtimeListeners.push(unsubEntries);
+            console.log('[Realtime] Listener incassi attivo');
+        }
+
+        // ===== GESTIONE UTENTI FIRESTORE =====
+        // Utenti di fallback (usati se Firestore non disponibile)
+        const defaultUsers = [
+            { username: 'admin', password: 'malaga2025', role: 'admin' },
+            { username: 'hennadiy', password: 'gestione123', role: 'admin' },
+            { username: 'manager', password: 'manager2025', role: 'manager' },
+            { username: 'user1', password: 'user1pass', role: 'user' },
+            { username: 'user2', password: 'user2pass', role: 'user' }
+        ];
+        
+        // Utenti caricati (Firestore o fallback)
+        let users = [...defaultUsers];
+
+        async function loadUsersFromFirestore() {
+            const svc = await fbSvc();
+            if (!svc.enabled) {
+                console.log('[Users] Usando utenti locali di default');
+                return;
+            }
+            
+            try {
+                const { db, f: F } = svc;
+                const snap = await F.getDocs(F.collection(db, 'malagaUsers'));
+                
+                if (snap.empty) {
+                    // Prima volta: inizializza utenti su Firestore
+                    console.log('[Users] Inizializzazione utenti su Firestore...');
+                    for (const u of defaultUsers) {
+                        await F.setDoc(F.doc(db, 'malagaUsers', u.username), {
+                            username: u.username,
+                            password: u.password,
+                            role: u.role || 'user',
+                            createdAt: F.serverTimestamp()
+                        });
+                    }
+                    console.log('[Users] Utenti inizializzati su Firestore');
+                } else {
+                    // Carica utenti da Firestore
+                    users = [];
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        users.push({
+                            username: d.username,
+                            password: d.password,
+                            role: d.role || 'user'
+                        });
+                    });
+                    console.log('[Users] Caricati', users.length, 'utenti da Firestore');
+                }
+            } catch (e) {
+                console.error('[Users] Errore caricamento utenti:', e);
+                users = [...defaultUsers];
+            }
+        }
+
+        async function saveUserToFirestore(userData) {
+            const svc = await fbSvc();
+            if (!svc.enabled) return false;
+            
+            try {
+                const { db, f: F } = svc;
+                await F.setDoc(F.doc(db, 'malagaUsers', userData.username), {
+                    username: userData.username,
+                    password: userData.password,
+                    role: userData.role || 'user',
+                    updatedAt: F.serverTimestamp()
+                });
+                return true;
+            } catch (e) {
+                console.error('[Users] Errore salvataggio utente:', e);
+                return false;
+            }
+        }
+
+        async function deleteUserFromFirestore(username) {
+            const svc = await fbSvc();
+            if (!svc.enabled) return false;
+            
+            try {
+                const { db, f: F } = svc;
+                await F.deleteDoc(F.doc(db, 'malagaUsers', username));
+                return true;
+            } catch (e) {
+                console.error('[Users] Errore eliminazione utente:', e);
+                return false;
+            }
+        }
+
+        function getCurrentUserRole() {
+            const username = getCurrentUsername();
+            const user = users.find(u => u.username === username);
+            return user ? user.role : 'user';
+        }
+
+        function isAdmin() {
+            return getCurrentUserRole() === 'admin';
+        }
+
+        // ===== PANNELLO ADMIN UTENTI =====
+        function openAdminPanel() {
+            if (!isAdmin()) {
+                alert('⛔ Accesso negato\n\nSolo gli amministratori possono accedere a questa sezione.');
+                return;
+            }
+            
+            const modal = document.getElementById('adminModal');
+            if (modal) {
+                refreshUsersList();
+                modal.style.display = 'block';
+            }
+        }
+
+        function closeAdminPanel() {
+            const modal = document.getElementById('adminModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function refreshUsersList() {
+            await loadUsersFromFirestore();
+            
+            const list = document.getElementById('adminUsersList');
+            if (!list) return;
+            
+            list.innerHTML = '';
+            
+            users.forEach(u => {
+                const div = document.createElement('div');
+                div.className = 'admin-user-item';
+                div.innerHTML = `
+                    <div class="user-info">
+                        <span class="user-name">${u.username}</span>
+                        <span class="user-role role-${u.role}">${u.role}</span>
+                    </div>
+                    <div class="user-actions">
+                        <button onclick="editUser('${u.username}')" class="btn-edit">✏️</button>
+                        <button onclick="deleteUser('${u.username}')" class="btn-delete" ${u.username === 'admin' ? 'disabled' : ''}>🗑️</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        async function addNewUser() {
+            const username = prompt('Username nuovo utente:');
+            if (!username || !username.trim()) return;
+            
+            if (users.find(u => u.username === username.trim())) {
+                alert('❌ Username già esistente!');
+                return;
+            }
+            
+            const password = prompt('Password:');
+            if (!password) return;
+            
+            const role = prompt('Ruolo (admin/manager/user):', 'user');
+            if (!['admin', 'manager', 'user'].includes(role)) {
+                alert('❌ Ruolo non valido! Usa: admin, manager, o user');
+                return;
+            }
+            
+            const newUser = { username: username.trim(), password, role };
+            
+            if (window.__FB_ENABLED) {
+                const ok = await saveUserToFirestore(newUser);
+                if (!ok) {
+                    alert('❌ Errore salvataggio su Firebase');
+                    return;
+                }
+            }
+            
+            users.push(newUser);
+            refreshUsersList();
+            alert('✅ Utente aggiunto!');
+        }
+
+        async function editUser(username) {
+            const user = users.find(u => u.username === username);
+            if (!user) return;
+            
+            const newPassword = prompt(`Nuova password per ${username}:`, user.password);
+            if (newPassword === null) return;
+            
+            let newRole = user.role;
+            if (username !== 'admin') {
+                newRole = prompt(`Ruolo per ${username} (admin/manager/user):`, user.role);
+                if (!['admin', 'manager', 'user'].includes(newRole)) {
+                    alert('❌ Ruolo non valido!');
+                    return;
+                }
+            }
+            
+            user.password = newPassword;
+            user.role = newRole;
+            
+            if (window.__FB_ENABLED) {
+                await saveUserToFirestore(user);
+            }
+            
+            refreshUsersList();
+            alert('✅ Utente aggiornato!');
+        }
+
+        async function deleteUser(username) {
+            if (username === 'admin') {
+                alert('⛔ Non puoi eliminare l\'utente admin!');
+                return;
+            }
+            
+            if (!confirm(`Sei sicuro di voler eliminare l'utente "${username}"?`)) return;
+            
+            if (window.__FB_ENABLED) {
+                await deleteUserFromFirestore(username);
+            }
+            
+            users = users.filter(u => u.username !== username);
+            refreshUsersList();
+            alert('✅ Utente eliminato!');
         }
 
         // Sync manuale
@@ -2488,6 +3028,9 @@
 
             const daySummaryModal = document.getElementById('daySummaryModal');
             if (daySummaryModal && event.target === daySummaryModal) closeDaySummaryModal();
+
+            const adminModal = document.getElementById('adminModal');
+            if (adminModal && event.target === adminModal) closeAdminPanel();
         });
 
         function toggleReference() {
@@ -3351,19 +3894,19 @@
 
 
 
-    <!-- Firebase CDN (Versione 82) -->
+    <!-- Firebase CDN (Versione 83) -->
     <script type="module">
       // Firebase via CDN (modular SDK) — docs ufficiale
-      // Nota: questa parte NON espone segreti, ma usa la config del tuo progetto.
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
       import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
       import {
         getFirestore,
-        collection, doc, getDoc, setDoc, updateDoc, addDoc,
+        collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
         getDocs, query, where, orderBy, limit,
+        onSnapshot,
         serverTimestamp
       } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
-      // Versione 82: NON usiamo Firebase Storage. Le foto vengono compresse e salvate in Firestore come Base64.
+      // Versione 83: Realtime sync con onSnapshot + gestione utenti admin
 
       const cfg = window.FIREBASE_CONFIG || null;
 
@@ -3417,7 +3960,7 @@
           resolve({
             enabled: true,
             app, auth, db,
-            f: { collection, doc, getDoc, setDoc, updateDoc, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp },
+            f: { collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, getDocs, query, where, orderBy, limit, onSnapshot, serverTimestamp },
             s: {}
           });
         } catch (e) {
