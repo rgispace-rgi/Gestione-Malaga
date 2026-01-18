@@ -1,1 +1,3449 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Gestione Malaga - Stagione 25/26</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+        }
+
+        .login-container {
+            display: flex;
+            justify-content: center;
+            /* Posizionamento: più in alto rispetto al centro */
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 20px;
+            padding-top: 7vh;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 15px;
+            /* più bassa/compatta */
+            padding: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-box h2 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.8em;
+        }
+
+        .login-box .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 18px;
+            font-size: 0.9em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .login-button:hover {
+            transform: scale(1.02);
+        }
+
+        .login-button:active {
+            transform: scale(0.98);
+        }
+
+        .error-message {
+            color: #f44336;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9em;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .main-content {
+            display: none;
+        }
+
+        .main-content.show {
+            display: block;
+        }
+
+        .logout-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            z-index: 1000;
+        }
+
+        .logout-button:hover {
+            transform: scale(1.05);
+        }
+
+        .log-button {
+            position: fixed;
+            top: 20px;
+            right: 100px;
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s;
+            z-index: 1000;
+        }
+
+        .log-button:hover {
+            transform: scale(1.05);
+        }
+
+        .sync-button {
+            position: fixed;
+            top: 20px;
+            right: 210px;
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.2s, background 0.3s, color 0.3s;
+            z-index: 1000;
+            font-size: 18px;
+            min-width: 44px;
+            text-align: center;
+        }
+
+        .sync-button:hover {
+            transform: scale(1.05);
+        }
+
+        .sync-button.syncing {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+
+        /* ===== Pulsante chiudi tutto (Versione 64) ===== */
+        .close-all-btn {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            border: none;
+            background: #ff2d2d;
+            color: white;
+            font-size: 22px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+            display: none;
+            z-index: 999999;
+            transition: transform 0.15s ease, filter 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .close-all-btn:hover {
+            transform: scale(1.08);
+            filter: brightness(1.05);
+        }
+
+        .close-all-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Modal aperto sotto un altro modal */
+        .modal-under .incasso-modal-content {
+            transform: translateY(38px) scale(0.985);
+            opacity: 0.98;
+        }
+
+        .log-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .log-modal-content {
+            background-color: white;
+            margin: 3% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 80vh;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .log-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .log-modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .log-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        .log-table th {
+            background: #f8f9fa;
+            color: #333;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #667eea;
+            position: sticky;
+            top: 0;
+        }
+
+        .log-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .log-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .log-user {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .log-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .log-value {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+
+        .log-empty {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* ====== Dettagli Registro & Giorno (Versione 63) ====== */
+        .log-table tbody tr {
+            cursor: pointer;
+        }
+
+        .detail-modal-content {
+            max-width: 820px;
+        }
+
+        .detail-kv {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(0,0,0,0.06);
+        }
+
+        .detail-kv .k {
+            color: #666;
+            font-weight: 800;
+        }
+
+        .detail-kv .v {
+            color: #111;
+            font-weight: 900;
+            text-align: right;
+        }
+
+        .detail-section-title {
+            margin-top: 14px;
+            font-weight: 900;
+            color: #333;
+        }
+
+        .detail-note {
+            margin-top: 8px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: rgba(102,126,234,0.07);
+            color: #333;
+            font-weight: 800;
+        }
+
+        .thumb-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .thumb-mini {
+            width: 54px;
+            height: 54px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.18);
+            background: #f6f6f6;
+        }
+
+        .thumb-mini img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .activities-list {
+            margin-top: 10px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .activity-item {
+            padding: 12px 12px;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.08);
+            background: white;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            cursor: pointer;
+        }
+
+        .activity-item:hover {
+            transform: translateY(-1px);
+        }
+
+        .activity-item .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-weight: 900;
+        }
+
+        .activity-item .top .left {
+            color: #333;
+        }
+
+        .activity-item .top .right {
+            color: #667eea;
+        }
+
+        .activity-item .mid {
+            margin-top: 6px;
+            color: #555;
+            font-weight: 800;
+        }
+
+        .activity-item .bot {
+            margin-top: 6px;
+            color: #444;
+            font-weight: 700;
+        }
+
+
+        @media (max-width: 768px) {
+            .login-container {
+                padding-top: 5vh;
+            }
+
+            .login-box {
+                padding: 24px 18px;
+            }
+
+            .login-box h2 {
+                font-size: 1.5em;
+            }
+
+            .logout-button {
+                top: 10px;
+                right: 10px;
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+
+            .log-button {
+                top: 60px;
+                right: 10px;
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+
+            .sync-button {
+                top: 110px;
+                right: 10px;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .log-table {
+                font-size: 0.8em;
+            }
+
+            .log-table th,
+            .log-table td {
+                padding: 8px 4px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 5px;
+            font-size: 1.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            color: white;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1em;
+            opacity: 0.9;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.5em;
+                margin-bottom: 5px;
+            }
+            
+            .subtitle {
+                font-size: 0.9em;
+                margin-bottom: 15px;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .card {
+                padding: 15px;
+                border-radius: 10px;
+            }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 25px 50px;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+            position: relative;
+        }
+
+        .stat-box h3 {
+            font-size: 1em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+
+        .stat-box .update-date {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .stat-box .value {
+            font-size: 2em;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .dropdown-arrow {
+            font-size: 0.6em;
+            transition: transform 0.3s;
+        }
+
+        .dropdown-arrow.open {
+            transform: rotate(180deg);
+        }
+
+        .breakdown-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 10px;
+            background: white;
+            color: #333;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            padding: 20px;
+            min-width: 280px;
+            z-index: 100;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .breakdown-dropdown.show {
+            display: block;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 1.1em;
+        }
+
+        .breakdown-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            margin-top: 8px;
+            padding-top: 12px;
+            border-top: 2px solid #667eea;
+            font-size: 1.2em;
+        }
+
+        .breakdown-month {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .breakdown-amount {
+            color: #333;
+        }
+        
+        @media (max-width: 768px) {
+            .stat-box {
+                padding: 20px 30px;
+            }
+            
+            .stat-box h3 {
+                font-size: 0.9em;
+            }
+
+            .stat-box .update-date {
+                font-size: 0.75em;
+            }
+            
+            .stat-box .value {
+                font-size: 1.5em;
+            }
+
+            .breakdown-dropdown {
+                min-width: 260px;
+                padding: 18px;
+            }
+
+            .breakdown-item {
+                font-size: 1.35em;
+                padding: 14px 0;
+            }
+
+            .breakdown-item:last-child {
+                font-size: 1.50em;
+                padding-top: 14px;
+            }
+        }
+
+        .reference-table {
+            margin-top: 20px;
+            padding: 18px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .reference-table:hover {
+            background: #e9ecef;
+        }
+
+        .reference-table h3 {
+            margin-bottom: 12px;
+            color: #333;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s;
+        }
+
+        .toggle-icon.open {
+            transform: rotate(180deg);
+        }
+
+        .reference-values {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .reference-values.show {
+            display: grid;
+        }
+
+        .reference-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-weight: 600;
+            color: #667eea;
+            font-size: 1em;
+        }
+        
+        @media (max-width: 768px) {
+            .reference-table {
+                padding: 15px;
+            }
+            
+            .reference-table h3 {
+                font-size: 1.05em;
+                margin-bottom: 10px;
+            }
+            
+            .reference-values {
+                grid-template-columns: 1fr;
+            }
+            
+            .reference-item {
+                padding: 10px 12px;
+                font-size: 1.15em;
+            }
+        }
+
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+            table-layout: fixed;
+        }
+        
+        table th:nth-child(1),
+        table td:nth-child(1) {
+            width: 70px;
+        }
+        
+        table th:nth-child(2),
+        table td:nth-child(2) {
+            width: 115px;
+        }
+        
+        table th:nth-child(3),
+        table td:nth-child(3) {
+            width: 100px;
+        }
+        
+        table th:nth-child(4),
+        table td:nth-child(4) {
+            width: 85px;
+        }
+        
+        @media (max-width: 768px) {
+            table {
+                font-size: 0.85em;
+            }
+            
+            table th:nth-child(1),
+            table td:nth-child(1) {
+                width: 60px;
+            }
+            
+            table th:nth-child(2),
+            table td:nth-child(2) {
+                width: 95px;
+            }
+            
+            table th:nth-child(3),
+            table td:nth-child(3) {
+                width: 85px;
+            }
+            
+            table th:nth-child(4),
+            table td:nth-child(4) {
+                width: 75px;
+            }
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 5px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.85em;
+            word-wrap: break-word;
+        }
+        
+        @media (max-width: 768px) {
+            th {
+                padding: 10px 3px;
+                font-size: 0.75em;
+            }
+        }
+
+        td {
+            padding: 10px 5px;
+            border-bottom: 1px solid #e0e0e0;
+            word-wrap: break-word;
+        }
+        
+        @media (max-width: 768px) {
+            td {
+                padding: 8px 3px;
+            }
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .percentage {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.85em;
+            white-space: nowrap;
+        }
+
+        .percentage.level1 {
+            background: #4CAF50;
+        }
+
+        .percentage.level2 {
+            background: #8BC34A;
+        }
+
+        .percentage.level3 {
+            background: #FFC107;
+        }
+
+        .percentage.level4 {
+            background: #FF9800;
+        }
+        
+        @media (max-width: 768px) {
+            .percentage {
+                padding: 3px 8px;
+                font-size: 0.8em;
+            }
+        }
+
+        .month-total {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .day-value-display {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .edit-day-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .edit-day-button:hover {
+            transform: scale(1.05);
+        }
+
+        .edit-input-container {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .edit-input-container.show {
+            display: flex;
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .save-button, .cancel-button {
+            flex: 1;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        .save-button {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .cancel-button {
+            background: #f44336;
+            color: white;
+        }
+            
+
+        /* ===== Mesi come pulsanti visivi (Versione 59) ===== */
+        .month-badge {
+            --monthBg: rgba(255, 255, 255, 0.22);
+            --monthText: #ffffff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 7px 14px;
+            border-radius: 999px;
+            background: var(--monthBg);
+            color: var(--monthText);
+            font-weight: 800;
+            font-size: 0.95em;
+            letter-spacing: 0.2px;
+            white-space: nowrap;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.35);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .month-badge::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.9);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        }
+
+        .month-badge:active {
+            transform: scale(0.97);
+        }
+
+        
+        .month-badge:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px) scale(1.03);
+            box-shadow: 0 10px 26px rgba(0,0,0,0.25);
+        }
+        
+        @media (max-width: 768px) {
+            .month-badge {
+                padding: 3px 6px;
+                font-size: 0.85em;
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .close {
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .close:hover {
+            transform: scale(1.2);
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .daily-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .daily-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .daily-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .daily-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .daily-table input[type="number"] {
+            width: 100%;
+            padding: 6px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.95em;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+        }
+
+        .daily-table input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .day-number {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .day-name {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 0 0 15px 15px;
+            text-align: right;
+        }
+
+        .modal-footer button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .modal-footer button:hover {
+            transform: scale(1.05);
+        }
+
+        input[type="number"] {
+            width: 100%;
+            max-width: 105px;
+            padding: 6px 4px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 0.95em;
+            transition: border-color 0.3s;
+            -webkit-appearance: none;
+            -moz-appearance: textfield;
+            box-sizing: border-box;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        @media (max-width: 768px) {
+            input[type="number"] {
+                max-width: 90px;
+                padding: 5px 3px;
+                font-size: 16px;
+            }
+        }
+
+        .editable-cell {
+            background: #f9f9f9;
+        }
+
+        .non-editable-cell {
+            background: #f0f0f0;
+        }
+    
+
+        /* ====== Incasso Modal + Foto (Versione 82) ====== */
+        .incasso-modal {
+            display: none;
+            position: fixed;
+            z-index: 2500;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.55);
+            backdrop-filter: blur(2px);
+        }
+
+        .incasso-modal-content {
+            background-color: white;
+            margin: 4% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 92%;
+            max-width: 720px;
+            max-height: 86vh;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.35);
+            overflow: hidden;
+        }
+
+        .incasso-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .incasso-modal-body {
+            padding: 18px 20px;
+            overflow-y: auto;
+            max-height: 62vh;
+        }
+
+        .incasso-field {
+            margin-bottom: 16px;
+        }
+
+        .incasso-field label {
+            display: block;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        #incassoAmount {
+            width: 100%;
+            padding: 18px 18px;
+            font-size: 32px;
+            font-weight: 900;
+            border: 2px solid #e6e6e6;
+            border-radius: 14px;
+            outline: none;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 0.3px;
+        }
+
+        #incassoAmount:focus {
+            border-color: #667eea;
+        }
+
+        .photo-uploader {
+            border: 2px dashed rgba(102,126,234,0.55);
+            border-radius: 14px;
+            padding: 14px;
+            cursor: pointer;
+            background: rgba(102,126,234,0.06);
+            transition: transform 0.15s, background 0.15s;
+            user-select: none;
+        }
+
+        .photo-uploader:hover {
+            transform: scale(1.01);
+            background: rgba(102,126,234,0.09);
+        }
+
+        .photo-uploader-text {
+            font-weight: 700;
+            color: #3f51b5;
+        }
+
+        .photo-preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .photo-preview-item {
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+            background: #f6f6f6;
+            aspect-ratio: 1 / 1;
+        }
+
+        .photo-preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .photo-remove-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.65);
+            color: white;
+            font-weight: 900;
+            cursor: pointer;
+            line-height: 28px;
+            text-align: center;
+        }
+
+        .incasso-modal-footer {
+            padding: 14px 18px;
+            border-top: 1px solid rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #fafafa;
+        }
+
+        .incasso-cancel, .incasso-confirm {
+            border: none;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .incasso-cancel {
+            background: #e9ecef;
+            color: #333;
+        }
+
+        .incasso-confirm {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .incasso-cancel:hover, .incasso-confirm:hover {
+            transform: scale(1.02);
+        }
+
+        .photo-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: 8px;
+            font-weight: 800;
+            font-size: 12px;
+            color: rgba(102,126,234,0.95);
+        }
+
+    
+
+        /* Mini anteprime foto nel mese (Versione 62) */
+        .day-photos-mini {
+            margin-top: 8px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .mini-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 1px solid rgba(0,0,0,0.12);
+            overflow: hidden;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+        }
+
+        .mini-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .mini-more {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* Lightbox foto (Versione 62) */
+        .photo-lightbox {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.78);
+        }
+
+        .photo-lightbox-content {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: min(92vw, 920px);
+            height: min(86vh, 720px);
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 18px 60px rgba(0,0,0,0.55);
+            backdrop-filter: blur(10px);
+        }
+
+        .photo-lightbox-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            color: #fff;
+            font-weight: 800;
+        }
+
+        .photo-lightbox-toolbar .count {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .photo-lightbox-btn {
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 12px;
+            padding: 8px 10px;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        .photo-lightbox-stage {
+            height: calc(100% - 52px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .photo-lightbox-stage img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 14px;
+            background: #000;
+        }
+
+        .photo-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #fff;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 900;
+            user-select: none;
+        }
+
+        .photo-nav.prev { left: 12px; }
+        .photo-nav.next { right: 12px; }
+
+        @media (max-width: 480px) {
+            #incassoAmount {
+                font-size: 28px;
+                padding: 16px 16px;
+            }
+            .mini-thumb, .mini-more {
+                width: 20px;
+                height: 20px;
+            }
+        }
+
+    </style>
+
+    <!-- Firebase config (Versione 82) -->
+    <script>
+      // ✅ INCOLLA QUI la configurazione Firebase (Project settings → Your apps → Web app)
+      // Puoi incollarla in 2 modi:
+      // A) Consigliato (già pronto):
+      //    window.FIREBASE_CONFIG = { apiKey: '...', authDomain: '...', projectId: '...', storageBucket: '...', messagingSenderId: '...', appId: '...' };
+      // B) Se Firebase ti mostra "const firebaseConfig = {...}":
+      //    incolla quel blocco e sotto aggiungi: window.FIREBASE_CONFIG = firebaseConfig;
+      //
+      // ⚠️ IMPORTANTE: la API KEY è case-sensitive.
+      //    Occhio a confondere: "1" con "l" e "V" con "v".
+
+      window.FIREBASE_CONFIG = {
+        apiKey: "AIzaSyCpfIDmzvrJMv2-l4ba58kKJ3YDxpv9o8c",
+        authDomain: "incassi-malaga.firebaseapp.com",
+        projectId: "incassi-malaga",
+        storageBucket: "incassi-malaga.firebasestorage.app",
+        messagingSenderId: "132301424805",
+        appId: "1:132301424805:web:c995894c4572bb6a9e654c",
+        measurementId: "G-TXNZXVXJ10"
+      };
+
+      // Fallback automatico se hai incollato "const firebaseConfig = {...}" altrove
+      try {
+        if (!window.FIREBASE_CONFIG && typeof firebaseConfig !== 'undefined') {
+          window.FIREBASE_CONFIG = firebaseConfig;
+        }
+      } catch (_) {}
+    </script>
+
+</head>
+<body>
+    <!-- Badge Connessione (sempre visibile) -->
+    <div id="connectionBadge" style="position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:25px;font-size:14px;font-weight:800;z-index:999999;box-shadow:0 4px 15px rgba(0,0,0,0.3);cursor:pointer;border:2px solid rgba(255,255,255,0.3);background:linear-gradient(135deg,#888,#666);color:white;">
+        ⏳ Connessione...
+    </div>
+
+    <!-- Firebase Status (mostra errori Firebase) -->
+    <div id="fbStatus" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999999;display:none;max-width:90%;width:340px;padding:15px;border-radius:15px;background:rgba(200,0,0,.95);border:2px solid #ff4444;color:#fff;font-size:14px;line-height:1.4;box-shadow:0 10px 40px rgba(0,0,0,0.5);">
+      <div style="font-weight:800;margin-bottom:10px;font-size:16px;">❌ Errore Firebase</div>
+      <div id="fbStatusText"></div>
+      <button onclick="this.parentElement.style.display='none'" style="margin-top:12px;width:100%;padding:10px;border:none;border-radius:8px;background:white;color:#c00;font-weight:700;cursor:pointer;">Chiudi</button>
+    </div>
+    <!-- Login Screen -->
+    <div class="login-container" id="loginContainer">
+        <div class="login-box">
+            <h2>📊 Gestione Malaga</h2>
+            <div class="subtitle">Stagione 25/26</div>
+            <form id="loginForm" onsubmit="return handleLogin(event)">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="login-button">Accedi</button>
+                <div class="error-message" id="errorMessage">Username o password errati</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content" id="mainContent">
+        <button class="logout-button" onclick="handleLogout()">Esci</button>
+        <button class="log-button" onclick="openLogModal()">📋 Registro</button>
+        <button class="sync-button" onclick="manualSync()" title="Sincronizza dati">🔄</button>
+        
+        <div class="container">
+        <h1>📊 Gestione Malaga</h1>
+        <div class="subtitle">Stagione 25/26</div>
+        
+        <div class="card">
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>Totale Importo</h3>
+                    <div class="update-date" id="updateDate">Aggiornato al --/--/----</div>
+                    <div class="value" onclick="toggleBreakdown()">
+                        <span id="totalImport">Clicca per vedere</span>
+                        <span class="dropdown-arrow" id="dropdownArrow">▼</span>
+                    </div>
+                    <div class="breakdown-dropdown" id="breakdownDropdown">
+                        <!-- Qui verranno inseriti i dettagli mensili -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="reference-table" onclick="toggleReference()">
+                <h3>
+                    📋 Scala Percentuali - Incasso Totale al Mese
+                    <span class="toggle-icon" id="toggleIcon">▼</span>
+                </h3>
+                <div class="reference-values" id="referenceValues">
+                    <div class="reference-item">0 - 34.999 → 2%</div>
+                    <div class="reference-item">35.000 - 39.999 → 2,5%</div>
+                    <div class="reference-item">40.000 - 44.999 → 3%</div>
+                    <div class="reference-item">45.000+ → 3,5%</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mese</th>
+                            <th>Incasso Totale</th>
+                            <th>Importo Calcolato</th>
+                            <th>Percentuale Applicata</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="dailyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Dettagli Mese</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <table class="daily-table">
+                    <thead>
+                        <tr>
+                            <th>Giorno</th>
+                            <th>Giorno Settimana</th>
+                            <th>Incasso</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyTableBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal()">Chiudi</button>
+            </div>
+        </div>
+    </div>
+    <!-- End Main Content -->
+
+    <!-- Log Modal -->
+    <div id="logModal" class="log-modal">
+        <div class="log-modal-content">
+            <div class="log-modal-header">
+                <h2>📋 Registro Modifiche</h2>
+                <span class="close" onclick="closeLogModal()">&times;</span>
+            </div>
+            <div class="log-modal-body">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Giorno</th>
+                            <th>Mese</th>
+                            <th>Incasso</th>
+                            <th>Utente</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Log Detail Modal (Versione 63) -->
+    <div id="logDetailModal" class="incasso-modal">
+        <div class="incasso-modal-content detail-modal-content">
+            <div class="incasso-modal-header">
+                <h2 id="logDetailTitle">🧾 Dettaglio Registro</h2>
+                <span class="close" onclick="closeLogDetailModal()">&times;</span>
+            </div>
+            <div class="incasso-modal-body" id="logDetailBody"></div>
+            <div class="incasso-modal-footer">
+                <button class="incasso-cancel" onclick="closeLogDetailModal()">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Summary Modal (Versione 63) -->
+    <div id="daySummaryModal" class="incasso-modal">
+        <div class="incasso-modal-content detail-modal-content">
+            <div class="incasso-modal-header">
+                <h2 id="daySummaryTitle">📅 Dettagli Giorno</h2>
+                <span class="close" onclick="closeDaySummaryModal()">&times;</span>
+            </div>
+            <div class="incasso-modal-body" id="daySummaryBody"></div>
+            <div class="incasso-modal-footer">
+                <button class="incasso-cancel" onclick="closeDaySummaryModal()">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Close All Modals Button (Versione 64) -->
+    <button id="closeAllModalsBtn" class="close-all-btn" onclick="closeAllModals()" title="Chiudi tutte le finestre">×</button>
+    <!-- Incasso Modal (Versione 60) -->
+    <div id="incassoModal" class="incasso-modal">
+        <div class="incasso-modal-content">
+            <div class="incasso-modal-header">
+                <h2 id="incassoModalTitle">💶 Incasso</h2>
+                <span class="close" onclick="closeIncassoModal()">&times;</span>
+            </div>
+            <div class="incasso-modal-body">
+                <div class="incasso-field">
+                    <label for="incassoAmount">Importo</label>
+                    <input id="incassoAmount" type="text" inputmode="decimal" autocomplete="off" placeholder="0,00">
+                </div>
+                <div class="incasso-field">
+                    <label>Foto (puoi selezionare più immagini)</label>
+                    <div class="photo-uploader" onclick="document.getElementById('incassoPhotosInput').click()">
+                        <div class="photo-uploader-text">📷 Clicca per aggiungere foto</div>
+                        <input id="incassoPhotosInput" type="file" accept="image/*" multiple style="display:none;">
+                    </div>
+                    <div id="photoPreviewGrid" class="photo-preview-grid"></div>
+                </div>
+            </div>
+            <div class="incasso-modal-footer">
+                <button class="incasso-cancel" onclick="closeIncassoModal()">Annulla</button>
+                <button class="incasso-confirm" onclick="confirmIncassoModal()">Conferma</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Sistema di autenticazione (Versione 82 - Login persistente)
+        const users = [
+            { username: 'admin', password: 'malaga2025' },
+            { username: 'hennadiy', password: 'gestione123' },
+            { username: 'manager', password: 'manager2025' },
+            { username: 'user1', password: 'user1pass' },
+            { username: 'user2', password: 'user2pass' }
+        ];
+
+        // Verifica se l'utente è già loggato (usa localStorage per persistenza)
+        function checkAuth() {
+            const isLoggedIn = localStorage.getItem('malagaIsLoggedIn');
+            if (isLoggedIn === 'true') {
+                showMainContent();
+            }
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                localStorage.setItem('malagaIsLoggedIn', 'true');
+                localStorage.setItem('malagaUsername', username);
+                showMainContent();
+                document.getElementById('errorMessage').classList.remove('show');
+            } else {
+                document.getElementById('errorMessage').classList.add('show');
+                document.getElementById('password').value = '';
+            }
+            
+            return false;
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('malagaIsLoggedIn');
+            localStorage.removeItem('malagaUsername');
+            hideMainContent();
+            document.getElementById('loginForm').reset();
+        }
+
+        function showMainContent() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('mainContent').classList.add('show');
+        }
+
+        function hideMainContent() {
+            document.getElementById('loginContainer').style.display = 'flex';
+            document.getElementById('mainContent').classList.remove('show');
+        }
+
+        // Helper per ottenere username corrente
+        function getCurrentUsername() {
+            return localStorage.getItem('malagaUsername') || 'unknown';
+        }
+
+        // Listener foto incasso (Versione 82)
+
+        // ==============================
+        // Firebase Data Layer (Versione 76)
+        // ==============================
+        // - Incassi giornalieri: Firestore collection 'malagaDailyEntries'
+        // - Registro modifiche: Firestore collection 'malagaActivityLog'
+        // - Foto: Versione 82 → salvate come Base64 compresso (max 1200px, quality 0.7) in Firestore
+        // - Se FIREBASE_CONFIG non è impostato → fallback locale (localStorage)
+
+        window.__FB_ENABLED = false;
+        window.__LOCAL_CACHE_ENABLED = true;
+        
+        // Fallback: se il modulo Firebase non carica entro 8 secondi, usa modalità locale
+        if (!window.firebaseReady) {
+            window.firebaseReady = new Promise(resolve => {
+                setTimeout(() => {
+                    console.warn('[Firebase] Modulo non caricato in tempo, uso locale');
+                    resolve({ enabled: false });
+                }, 8000);
+            });
+        }
+
+        async function fbSvc() {
+            try {
+                if (!window.firebaseReady) {
+                    console.warn('[Firebase] firebaseReady non definito');
+                    return { enabled: false };
+                }
+                
+                // Timeout di 5 secondi per fbSvc
+                const timeoutPromise = new Promise(resolve => 
+                    setTimeout(() => resolve({ enabled: false, timeout: true }), 5000)
+                );
+                
+                const s = await Promise.race([window.firebaseReady, timeoutPromise]);
+                
+                if (s && s.timeout) {
+                    console.warn('[Firebase] Timeout in fbSvc');
+                }
+                
+                window.__FB_ENABLED = !!(s && s.enabled);
+                window.__LOCAL_CACHE_ENABLED = !window.__FB_ENABLED;
+                return s || { enabled: false };
+            } catch (e) {
+                console.error('[Firebase] Errore in fbSvc:', e);
+                window.__FB_ENABLED = false;
+                window.__LOCAL_CACHE_ENABLED = true;
+                return { enabled: false, error: e };
+            }
+        }
+
+        function safeIdMonth(monthLabel) {
+            return String(monthLabel || '').trim().replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_\-]/g, '_');
+        }
+
+        function fbEntryDocId(monthLabel, dayNumber) {
+            return `m_${safeIdMonth(monthLabel)}_d_${String(dayNumber)}`;
+        }
+
+        function dataURLToBlob(dataUrl) {
+            const parts = String(dataUrl).split(',');
+            const mimeMatch = parts[0].match(/:(.*?);/);
+            const mime = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+            const bstr = atob(parts[1] || '');
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while (n--) u8arr[n] = bstr.charCodeAt(n);
+            return new Blob([u8arr], { type: mime });
+        }
+
+        async function firebaseUploadPhotos(monthLabel, dayNumber, photos) {
+            // Versione 80: niente Firebase Storage (su Spark può richiedere upgrade).
+            // Salviamo direttamente le immagini come Base64 (dataURL) dentro Firestore.
+            // Manteniamo compatibilità con eventuali URL già presenti.
+            const svc = await fbSvc();
+            if (!svc.enabled) return Array.isArray(photos) ? photos : [];
+
+            const normalized = [];
+            (Array.isArray(photos) ? photos : []).forEach((p) => {
+                if (typeof p !== 'string') return;
+                const s = p.trim();
+                if (!s) return;
+                if (s.startsWith('data:image')) normalized.push(s);
+                else if (s.startsWith('https://') || s.startsWith('http://')) normalized.push(s);
+            });
+            return normalized;
+        }
+
+        async function firebaseUpsertDailyEntry(monthLabel, dayNumber, value, photos) {
+            const svc = await fbSvc();
+            if (!svc.enabled) return false;
+
+            const { db, f: F } = svc;
+            const username = getCurrentUsername();
+
+            const id = fbEntryDocId(monthLabel, dayNumber);
+            const urls = await firebaseUploadPhotos(monthLabel, dayNumber, photos);
+
+            await F.setDoc(F.doc(db, 'malagaDailyEntries', id), {
+                month: monthLabel,
+                day: Number(dayNumber),
+                value: Number(value) || 0,
+                photos: urls,
+                updatedBy: username,
+                updatedAt: F.serverTimestamp()
+            }, { merge: true });
+
+            return true;
+        }
+
+        async function firebaseFetchMonthEntries(monthLabel) {
+            const svc = await fbSvc();
+            if (!svc.enabled) return [];
+
+            const { db, f: F } = svc;
+            const q = F.query(
+                F.collection(db, 'malagaDailyEntries'),
+                F.where('month', '==', monthLabel)
+            );
+            const snap = await F.getDocs(q);
+            const out = [];
+            snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+            return out;
+        }
+
+        async function firebaseAddLogEntry(entry) {
+            const svc = await fbSvc();
+            if (!svc.enabled) return false;
+
+            const { db, f: F } = svc;
+            const payload = Object.assign({}, entry, { createdAt: F.serverTimestamp() });
+            await F.addDoc(F.collection(db, 'malagaActivityLog'), payload);
+            return true;
+        }
+
+        async function firebaseFetchLog(maxItems = 500) {
+            const svc = await fbSvc();
+            if (!svc.enabled) return [];
+
+            const { db, f: F } = svc;
+            const q = F.query(
+                F.collection(db, 'malagaActivityLog'),
+                F.orderBy('createdAt', 'desc'),
+                F.limit(maxItems)
+            );
+            const snap = await F.getDocs(q);
+            const out = [];
+            snap.forEach(d => out.push({ id: d.id, ...d.data() }));
+            return out;
+        }
+
+        async function firebaseFetchLogForDay(monthLabel, dayNumber) {
+            const svc = await fbSvc();
+            if (!svc.enabled) return [];
+
+            const dayNum = Number(dayNumber);
+            
+            try {
+                const { db, f: F } = svc;
+                
+                // Prima prova: query con due where (potrebbe richiedere indice)
+                let snap;
+                try {
+                    const q = F.query(
+                        F.collection(db, 'malagaActivityLog'),
+                        F.where('month', '==', monthLabel),
+                        F.where('day', '==', dayNum),
+                        F.limit(200)
+                    );
+                    snap = await F.getDocs(q);
+                } catch (indexError) {
+                    // Fallback: query solo per mese e filtra localmente
+                    console.warn('Indice mancante, uso fallback:', indexError);
+                    const q = F.query(
+                        F.collection(db, 'malagaActivityLog'),
+                        F.where('month', '==', monthLabel),
+                        F.limit(500)
+                    );
+                    snap = await F.getDocs(q);
+                }
+                
+                const out = [];
+                snap.forEach(d => {
+                    const data = d.data();
+                    // Filtra per giorno (sia numero che stringa)
+                    if (Number(data.day) === dayNum || String(data.day) === String(dayNumber)) {
+                        out.push({ id: d.id, ...data });
+                    }
+                });
+                
+                // Ordina localmente per data decrescente
+                out.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate?.() || new Date(a.timestamp || 0);
+                    const dateB = b.createdAt?.toDate?.() || new Date(b.timestamp || 0);
+                    return dateB - dateA;
+                });
+                
+                return out;
+            } catch (e) {
+                console.error('Errore fetch log per giorno:', e);
+                return [];
+            }
+        }
+
+        // Indicatore stato connessione Firebase
+        function updateConnectionStatus(connected, message = '') {
+            // Aggiorna badge in basso
+            const badge = document.getElementById('connectionBadge');
+            if (badge) {
+                if (connected) {
+                    badge.style.background = 'linear-gradient(135deg, #00c851, #007e33)';
+                    badge.textContent = '☁️ Cloud Sync';
+                } else {
+                    badge.style.background = 'linear-gradient(135deg, #ff8800, #cc6600)';
+                    badge.textContent = '📱 Solo Locale';
+                }
+                badge.onclick = () => {
+                    if (window.__FB_ENABLED) {
+                        alert('✅ Connesso a Firebase Cloud\n\nI dati vengono sincronizzati su tutti i dispositivi.');
+                    } else {
+                        let msg = '⚠️ Modalità Locale\n\nI dati sono salvati solo su questo dispositivo.\n\n';
+                        if (window.__FIREBASE_LAST_ERROR) {
+                            msg += 'ERRORE: ' + window.__FIREBASE_LAST_ERROR + '\n\n';
+                        }
+                        msg += 'Verifica in Firebase Console:\n';
+                        msg += '1. Authentication → Sign-in method → Anonymous = ABILITATO\n';
+                        msg += '2. Firestore Database → Creato\n';
+                        msg += '3. Connessione internet attiva';
+                        alert(msg);
+                    }
+                };
+            }
+            
+            // Ferma animazione pulsante sync
+            const btn = document.querySelector('.sync-button');
+            if (btn) {
+                btn.classList.remove('syncing');
+            }
+            
+            if (message) console.log('[Firebase]', message);
+        }
+
+        async function initFirebaseDataSync() {
+            console.log('[Firebase] Inizializzazione sync...');
+            
+            try {
+                // Timeout di 8 secondi per la connessione Firebase
+                let svc = null;
+                const timeoutId = setTimeout(() => {
+                    console.warn('[Firebase] Timeout raggiunto');
+                }, 8000);
+                
+                try {
+                    // Aspetta firebaseReady con timeout
+                    if (window.firebaseReady) {
+                        svc = await Promise.race([
+                            window.firebaseReady,
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 8000))
+                        ]);
+                    }
+                } catch (e) {
+                    console.warn('[Firebase] Errore o timeout:', e.message);
+                    svc = { enabled: false };
+                }
+                
+                clearTimeout(timeoutId);
+                
+                // Aggiorna flag globale
+                window.__FB_ENABLED = !!(svc && svc.enabled);
+                window.__LOCAL_CACHE_ENABLED = !window.__FB_ENABLED;
+                
+                if (!svc || !svc.enabled) {
+                    console.warn('[Firebase] Non abilitato - usando localStorage');
+                    updateConnectionStatus(false, 'Firebase non abilitato');
+                    return false;
+                }
+                
+                console.log('[Firebase] Connesso! Caricamento dati...');
+
+                for (let i = 0; i < data.length; i++) {
+                    const monthLabel = data[i].month;
+                    const entries = await firebaseFetchMonthEntries(monthLabel);
+                    if (!entries || !entries.length) continue;
+
+                    entries.forEach(e => {
+                        const day = Number(e.day);
+                        const dayIndex = data[i].dailyData.findIndex(d => Number(d.day) === day);
+                        if (dayIndex >= 0) {
+                            data[i].dailyData[dayIndex].value = Number(e.value) || 0;
+                            data[i].dailyData[dayIndex].photos = Array.isArray(e.photos) ? e.photos : [];
+                        }
+                    });
+
+                    const mergedTotal = data[i].dailyData.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+                    data[i].value = Math.round(mergedTotal * 100) / 100;
+                }
+
+                renderTable();
+                calculateStats();
+                updateConnectionStatus(true, 'Firebase connesso');
+                console.log('[Firebase] Sync completato!');
+                return true;
+            } catch (e) {
+                console.error('[Firebase] Errore sync:', e);
+                updateConnectionStatus(false, 'Errore: ' + e.message);
+                return false;
+            }
+        }
+
+        // Sync manuale
+        async function manualSync() {
+            const btn = document.querySelector('.sync-button');
+            if (btn) {
+                btn.classList.add('syncing');
+            }
+            
+            // Timeout di sicurezza: ferma dopo 15 secondi
+            const safetyTimeout = setTimeout(() => {
+                if (btn) btn.classList.remove('syncing');
+                updateConnectionStatus(false, 'Timeout sync manuale');
+            }, 15000);
+            
+            try {
+                const success = await initFirebaseDataSync();
+                clearTimeout(safetyTimeout);
+                
+                if (success) {
+                    alert('✅ Sincronizzazione completata!\n\nI dati sono stati aggiornati dal cloud.');
+                } else {
+                    alert('⚠️ Firebase non connesso\n\nI dati sono solo locali su questo dispositivo.\n\nVerifica:\n1. Authentication → Anonymous abilitato\n2. Firestore Database creato\n3. Connessione internet attiva');
+                }
+            } catch (e) {
+                clearTimeout(safetyTimeout);
+                alert('❌ Errore sincronizzazione:\n' + e.message);
+                updateConnectionStatus(false);
+            } finally {
+                if (btn) btn.classList.remove('syncing');
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Controlla autenticazione all'avvio
+            checkAuth();
+            
+            const input = document.getElementById('incassoPhotosInput');
+            if (input) input.addEventListener('change', handlePhotoInputChange);
+
+            // Sync da Firebase (se configurato) - con delay per caricare modulo
+            setTimeout(async () => {
+                try {
+                    await initFirebaseDataSync();
+                } catch (e) {
+                    console.error('[Firebase] Errore init sync:', e);
+                    updateConnectionStatus(false, 'Errore: ' + e.message);
+                }
+                
+                // Ferma SEMPRE l'animazione dopo 10 secondi max
+                const btn = document.querySelector('.sync-button');
+                if (btn) btn.classList.remove('syncing');
+            }, 800);
+            
+            // Fallback: ferma animazione dopo 12 secondi comunque
+            setTimeout(() => {
+                const btn = document.querySelector('.sync-button');
+                if (btn) btn.classList.remove('syncing');
+            }, 12000);
+        });
+
+        // Sistema di Registro (Log)
+        // Versione 69: spostato su Firebase (Firestore) quando disponibile
+        function getActivityLogLocal() {
+            const log = localStorage.getItem('activityLog');
+            return log ? JSON.parse(log) : [];
+        }
+
+        function saveActivityLogLocal(log) {
+            if (!window.__LOCAL_CACHE_ENABLED) return;
+            localStorage.setItem('activityLog', JSON.stringify(log));
+        }
+
+        function addLogEntry(month, day, value, meta = {}) {
+            const username = getCurrentUsername();
+            const now = new Date();
+            const dayNum = Number(day) || day; // Converti a numero se possibile
+
+            const entry = {
+                id: meta.id || `${now.getTime()}-${Math.random().toString(16).slice(2,8)}`,
+                timestamp: now.toISOString(),
+                username: username,
+                month: month,
+                day: dayNum,
+                dayShort: formatShortDayLabel(day, month),
+                value: Number(value) || 0,
+                oldValue: (typeof meta.oldValue === 'number') ? meta.oldValue : null,
+                action: meta.action || '',
+                details: meta.details || '',
+                photos: Array.isArray(meta.photos) ? meta.photos : [],
+                formattedDate: formatDateTime(now)
+            };
+
+            // Cloud (Firebase)
+            if (window.__FB_ENABLED) {
+                firebaseAddLogEntry(entry).catch(() => {});
+                return;
+            }
+
+            // Fallback locale
+            const log = getActivityLogLocal();
+            log.unshift(entry);
+            if (log.length > 500) log.pop();
+            saveActivityLogLocal(log);
+        }
+
+        async function fetchLog(maxItems = 500) {
+            if (window.__FB_ENABLED) {
+                try {
+                    return await firebaseFetchLog(maxItems);
+                } catch (e) {
+                    return [];
+                }
+            }
+            return getActivityLogLocal();
+        }
+
+        async function fetchLogForDay(monthLabel, dayNumber) {
+            const dayNum = Number(dayNumber);
+            
+            if (window.__FB_ENABLED) {
+                try {
+                    return await firebaseFetchLogForDay(monthLabel, dayNum);
+                } catch (e) {
+                    console.error('Errore fetchLogForDay Firebase:', e);
+                    return [];
+                }
+            }
+            
+            // Modalità locale - confronta sia come numero che come stringa
+            const log = getActivityLogLocal();
+            return log.filter(e => {
+                const matchMonth = String(e.month) === String(monthLabel);
+                const matchDay = Number(e.day) === dayNum || String(e.day) === String(dayNumber);
+                return matchMonth && matchDay;
+            });
+        }
+
+        function formatDateTime(date) {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            const seconds = String(date.getSeconds()).padStart(2, '0');
+            
+            return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+        }
+
+        async function openLogModal() {
+            const tbody = document.getElementById('logTableBody');
+            tbody.innerHTML = '<tr><td colspan="4" class="log-empty">Caricamento...</td></tr>';
+
+            const log = await fetchLog(500);
+            tbody.innerHTML = '';
+
+            if (!log || log.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="log-empty">Nessuna modifica registrata</td></tr>';
+            } else {
+                log.forEach(entry => {
+                    const tr = document.createElement('tr');
+                    const dayLabel = entry.dayShort || formatShortDayLabel(entry.day, entry.month);
+                    tr.innerHTML = `
+                        <td>${dayLabel}</td>
+                        <td>${entry.month}</td>
+                        <td class="log-value">${formatCurrency(Number(entry.value) || 0)}</td>
+                        <td class="log-user">${entry.username || '--'}</td>
+                    `;
+                    tr.addEventListener('click', () => openLogDetailModal(entry, false));
+                    tbody.appendChild(tr);
+                });
+            }
+
+            document.getElementById('logModal').style.display = 'block';
+            updateCloseAllBtn();
+        }
+
+        function closeLogModal() {
+            document.getElementById('logModal').style.display = 'none';
+            updateCloseAllBtn();
+        }
+
+        // ===== Dettaglio Registro & Giorno (Versione 63) =====
+        function closeLogDetailModal() {
+            const m = document.getElementById('logDetailModal');
+            if (m) { m.style.display = 'none'; m.classList.remove('modal-under'); }
+            updateCloseAllBtn();
+        }
+
+        function closeDaySummaryModal() {
+            document.getElementById('daySummaryModal').style.display = 'none';
+            updateCloseAllBtn();
+        }
+
+        function renderThumbStrip(containerEl, photos) {
+            containerEl.innerHTML = '';
+            if (!Array.isArray(photos) || photos.length === 0) {
+                const empty = document.createElement('div');
+                empty.style.color = '#777';
+                empty.style.fontWeight = '800';
+                empty.style.marginTop = '6px';
+                empty.textContent = 'Nessuna foto';
+                containerEl.appendChild(empty);
+                return;
+            }
+
+            const strip = document.createElement('div');
+            strip.className = 'thumb-strip';
+            photos.slice(0, 20).forEach((src, idx) => {
+                const t = document.createElement('div');
+                t.className = 'thumb-mini';
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = 'foto';
+                t.appendChild(img);
+                t.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    openPhotoLightbox(photos, idx);
+                });
+                strip.appendChild(t);
+            });
+            containerEl.appendChild(strip);
+        }
+
+        // ===== Gestione stack finestre + Chiudi tutto (Versione 82) =====
+        function isModalVisible(el) {
+            if (!el) return false;
+            const dispInline = (el.style && el.style.display) ? el.style.display : '';
+            if (dispInline === 'block' || dispInline === 'flex') return true;
+            // Fallback robusto (computed style)
+            try {
+                return window.getComputedStyle(el).display !== 'none';
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function updateCloseAllBtn() {
+            const btn = document.getElementById('closeAllModalsBtn');
+            if (!btn) return;
+
+            const ids = ['dailyModal','daySummaryModal','logDetailModal','incassoModal','logModal'];
+            let openCount = 0;
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (isModalVisible(el)) openCount++;
+            });
+
+            btn.style.display = openCount > 1 ? 'block' : 'none';
+        }
+
+        function closeAllModals() {
+            // Chiude tutto in ordine (dal top al basso)
+            try { closeIncassoModal(); } catch(e) {}
+            try { closeLogDetailModal(); } catch(e) {}
+            try { closeDaySummaryModal(); } catch(e) {}
+            try { closeLogModal(); } catch(e) {}
+            try { closeModal(); } catch(e) {}
+            updateCloseAllBtn();
+        }
+
+        function openLogDetailModal(entry, openedFromDay = false) {
+            if (!entry) return;
+            const title = document.getElementById('logDetailTitle');
+            const body = document.getElementById('logDetailBody');
+
+            const giornoShort = entry.dayShort || formatShortDayLabel(entry.day, entry.month);
+            title.textContent = `🧾 Registro • ${giornoShort} • ${entry.month}`;
+
+            const action = entry.action || (entry.day === 'Totale' ? 'Aggiornamento Totale' : 'Aggiornamento Giorno');
+            const details = entry.details || '';
+
+            body.innerHTML = '';
+            const wrap = document.createElement('div');
+
+            const kv = (k, v) => {
+                const row = document.createElement('div');
+                row.className = 'detail-kv';
+                row.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
+                return row;
+            };
+
+            wrap.appendChild(kv('Giorno', giornoShort));
+            wrap.appendChild(kv('Mese', entry.month));
+            wrap.appendChild(kv('Incasso', formatCurrency(Number(entry.value) || 0)));
+            wrap.appendChild(kv('Utente', entry.username || '--'));
+            wrap.appendChild(kv('Data/Ora', entry.formattedDate || '--'));
+            wrap.appendChild(kv('Tipo', action));
+
+            if (typeof entry.oldValue === 'number' && entry.oldValue !== null && entry.oldValue !== Number(entry.value)) {
+                wrap.appendChild(kv('Modifica Importo', `${formatCurrency(entry.oldValue)} → ${formatCurrency(Number(entry.value) || 0)}`));
+            }
+
+            if (details) {
+                const d = document.createElement('div');
+                d.className = 'detail-section-title';
+                d.textContent = 'Dettagli';
+                wrap.appendChild(d);
+                const dd = document.createElement('div');
+                dd.className = 'detail-note';
+                dd.textContent = details;
+                wrap.appendChild(dd);
+            }
+
+            const photos = Array.isArray(entry.photos) ? entry.photos : [];
+            const phTitle = document.createElement('div');
+            phTitle.className = 'detail-section-title';
+            phTitle.textContent = `Foto (${photos.length})`;
+            wrap.appendChild(phTitle);
+            const phBox = document.createElement('div');
+            renderThumbStrip(phBox, photos);
+            wrap.appendChild(phBox);
+
+            body.appendChild(wrap);
+            (function(){
+            const modal = document.getElementById('logDetailModal');
+            if (!modal) return;
+
+            // Se aperto dal popup giorno, il dettaglio registro deve stare sopra
+            if (openedFromDay) {
+                modal.style.zIndex = '2750';
+                modal.classList.remove('modal-under');
+            } else {
+                modal.style.zIndex = '2600';
+                modal.classList.remove('modal-under');
+            }
+            modal.style.display = 'block';
+            updateCloseAllBtn();
+        })();
+        }
+
+        async function getLogEntriesForDay(monthLabel, dayNumber) {
+            return await fetchLogForDay(monthLabel, dayNumber);
+        }
+
+        async function openDaySummaryModal(monthIndex, dayIndex) {
+            const monthData = data[monthIndex];
+            const dayData = monthData.dailyData[dayIndex];
+            const dayShort = formatShortDayLabel(dayData.day, monthData.month);
+
+            const title = document.getElementById('daySummaryTitle');
+            const body = document.getElementById('daySummaryBody');
+            title.textContent = `📅 ${dayShort} • ${monthData.month}`;
+
+            body.innerHTML = '';
+            const wrap = document.createElement('div');
+
+            // Incasso
+            wrap.appendChild((() => {
+                const row = document.createElement('div');
+                row.className = 'detail-kv';
+                row.innerHTML = `<div class="k">Incasso</div><div class="v">${formatCurrency(Number(dayData.value) || 0)}</div>`;
+                return row;
+            })());
+
+            // Foto del giorno
+            const photos = Array.isArray(dayData.photos) ? dayData.photos : [];
+            const phTitle = document.createElement('div');
+            phTitle.className = 'detail-section-title';
+            phTitle.textContent = `Foto (${photos.length})`;
+            wrap.appendChild(phTitle);
+            const phBox = document.createElement('div');
+            renderThumbStrip(phBox, photos);
+            wrap.appendChild(phBox);
+
+            // Attività registro
+            const actTitle = document.createElement('div');
+            actTitle.className = 'detail-section-title';
+            actTitle.textContent = 'Attività Registro (quel giorno)';
+            wrap.appendChild(actTitle);
+
+            const list = document.createElement('div');
+            list.className = 'activities-list';
+            const entries = await getLogEntriesForDay(monthData.month, dayData.day);
+
+            if (!entries || entries.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'detail-note';
+                empty.textContent = 'Nessuna attività registrata per questo giorno.';
+                list.appendChild(empty);
+            } else {
+                entries.forEach(entry => {
+                    const item = document.createElement('div');
+                    item.className = 'activity-item';
+                    const action = entry.action || 'Aggiornamento';
+                    const dayLabel = entry.dayShort || formatShortDayLabel(entry.day, entry.month);
+                    item.innerHTML = `
+                        <div class="top">
+                            <div class="left">${action}</div>
+                            <div class="right">${entry.username || '--'}</div>
+                        </div>
+                        <div class="mid">${formatCurrency(Number(entry.value) || 0)} • ${dayLabel} • ${(entry.formattedDate || '')}</div>
+                        ${entry.details ? `<div class="bot">${entry.details}</div>` : ''}
+                    `;
+                    item.addEventListener('click', () => openLogDetailModal(entry, true));
+                    list.appendChild(item);
+                });
+            }
+
+            wrap.appendChild(list);
+            body.appendChild(wrap);
+            (function(){
+                const m = document.getElementById('daySummaryModal');
+                if (m) { m.style.zIndex = '2500'; m.classList.remove('modal-under'); m.style.display = 'block'; }
+                updateCloseAllBtn();
+            })();
+        }
+
+
+        // Chiudi i modal cliccando fuori
+        window.addEventListener('click', (event) => {
+            const logModal = document.getElementById('logModal');
+            if (logModal && event.target === logModal) closeLogModal();
+
+            const dailyModal = document.getElementById('dailyModal');
+            if (dailyModal && event.target === dailyModal) closeModal();
+
+            const incassoModal = document.getElementById('incassoModal');
+            if (incassoModal && event.target === incassoModal) closeIncassoModal();
+
+            const logDetailModal = document.getElementById('logDetailModal');
+            if (logDetailModal && event.target === logDetailModal) closeLogDetailModal();
+
+            const daySummaryModal = document.getElementById('daySummaryModal');
+            if (daySummaryModal && event.target === daySummaryModal) closeDaySummaryModal();
+        });
+
+        function toggleReference() {
+            const values = document.getElementById('referenceValues');
+            const icon = document.getElementById('toggleIcon');
+            
+            values.classList.toggle('show');
+            icon.classList.toggle('open');
+        }
+
+        const thresholds = [
+            { limit: 34999, percentage: 0.02 },
+            { limit: 39999, percentage: 0.025 },
+            { limit: 44999, percentage: 0.03 },
+            { limit: Infinity, percentage: 0.035 }
+        ];
+
+        const data = [
+            {month: "Set 25", value: 0, year: 2025, monthNum: 9, dailyData: []},
+            {month: "Ott 25", value: 0, year: 2025, monthNum: 10, dailyData: []},
+            {month: "Nov 25", value: 0, year: 2025, monthNum: 11, dailyData: []},
+            {month: "Dic 25", value: 0, year: 2025, monthNum: 12, dailyData: []},
+            {month: "Gen 26", value: 0, year: 2026, monthNum: 1, dailyData: []},
+            {month: "Feb 26", value: 0, year: 2026, monthNum: 2, dailyData: []},
+            {month: "Mar 26", value: 0, year: 2026, monthNum: 3, dailyData: []},
+            {month: "Apr 26", value: 0, year: 2026, monthNum: 4, dailyData: []},
+            {month: "Mag 26", value: 0, year: 2026, monthNum: 5, dailyData: []},
+            {month: "Giu 26", value: 0, year: 2026, monthNum: 6, dailyData: []},
+            {month: "Lug 26", value: 0, year: 2026, monthNum: 7, dailyData: []},
+            {month: "Ago 26", value: 0, year: 2026, monthNum: 8, dailyData: []}
+        ];
+
+        const september2025Data = {
+            1: 408.90,
+            2: 277.60,
+            3: 343.20,
+            4: 738.60,
+            5: 3796.40,
+            6: 2544.50,
+            7: 581.00,
+            8: 280.40,
+            9: 277.60,
+            10: 1171.50,
+            11: 934.00,
+            12: 3103.00,
+            13: 1524.00,
+            14: 823.00,
+            15: 464.00,
+            16: 344.70,
+            17: 555.00,
+            18: 715.00,
+            19: 2135.70,
+            20: 2415.50,
+            21: 2204.00,
+            22: 461.50,
+            23: 485.50,
+            24: 592.00,
+            25: 582.00,
+            26: 1315.70,
+            27: 3077.50,
+            28: 1231.50,
+            29: 427.60,
+            30: 1603.20
+        };
+
+        const october2025Data = {
+            1: 1750.50,
+            2: 530.00,
+            3: 2358.00,
+            4: 3160.50,
+            5: 813.00,
+            6: 382.40,
+            7: 422.00,
+            8: 904.00,
+            9: 1623.00,
+            10: 2640.90,
+            11: 2363.60,
+            12: 1247.90,
+            13: 164.90,
+            14: 311.90,
+            15: 515.00,
+            16: 880.60,
+            17: 2068.50,
+            18: 4063.00,
+            19: 710.00,
+            20: 268.50,
+            21: 434.50,
+            22: 683.70,
+            23: 550.00,
+            24: 2512.75,
+            25: 1071.00,
+            26: 1197.50,
+            27: 352.60,
+            28: 312.80,
+            29: 470.00,
+            30: 1465.40,
+            31: 4144.60
+        };
+
+        const november2025Data = {
+            1: 2424.00,
+            2: 627.50,
+            3: 468.00,
+            4: 455.60,
+            5: 2233.80,
+            6: 905.00,
+            7: 3043.10,
+            8: 2432.50,
+            10: 891.20,
+            11: 618.40,
+            12: 1383.30,
+            13: 458.00,
+            14: 2971.80,
+            15: 1247.00,
+            17: 516.80,
+            18: 1185.60,
+            19: 817.00,
+            20: 423.00,
+            21: 1999.30,
+            22: 1229.00,
+            23: 652.50,
+            24: 143.30,
+            25: 840.70,
+            26: 845.00,
+            27: 712.00,
+            28: 3778.00,
+            29: 2137.00,
+            30: 848.00
+        };
+
+        const december2025Data = {
+            1: 259.90,
+            2: 290.90
+        };
+
+        function initializeDailyData() {
+            data.forEach(monthData => {
+                const daysInMonth = new Date(monthData.year, monthData.monthNum, 0).getDate();
+                monthData.dailyData = [];
+
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = new Date(monthData.year, monthData.monthNum - 1, day);
+                    const dayNames = ['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'];
+                    const dayName = dayNames[date.getDay()];
+
+                    let dailyValue = 0;
+                    if (monthData.month === "Set 25" && september2025Data[day]) {
+                        dailyValue = september2025Data[day];
+                    } else if (monthData.month === "Ott 25" && october2025Data[day]) {
+                        dailyValue = october2025Data[day];
+                    } else if (monthData.month === "Nov 25" && november2025Data[day]) {
+                        dailyValue = november2025Data[day];
+                    } else if (monthData.month === "Dic 25" && december2025Data[day]) {
+                        dailyValue = december2025Data[day];
+                    }
+
+                    monthData.dailyData.push({
+                        day: day,
+                        dayName: dayName,
+                        value: dailyValue,
+                        photos: []
+                    });
+                }
+
+                // Applica valori salvati (incluso foto)
+                applyPersistedDailyData(monthData);
+
+                // Ricalcola totale mese dopo merge
+                const mergedTotal = monthData.dailyData.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+                monthData.value = Math.round(mergedTotal * 100) / 100;
+            });
+        }
+
+        let currentMonthIndex = -1;
+
+        function openMonthDetails(index) {
+            currentMonthIndex = index;
+            const monthData = data[index];
+            
+            document.getElementById('modalTitle').textContent = `Dettagli ${monthData.month}`;
+            
+            const tbody = document.getElementById('dailyTableBody');
+            tbody.innerHTML = '';
+            
+            monthData.dailyData.forEach((day, dayIndex) => {
+                const tr = document.createElement('tr');
+                tr.className = 'day-row-clickable';
+                tr.innerHTML = `
+                    <td class="day-number">${day.day}</td>
+                    <td class="day-name">${day.dayName}</td>
+                    <td>
+                        <div class="day-value-display" id="display-${dayIndex}">
+                            ${formatCurrency(day.value)}
+                            ${Array.isArray(day.photos) && day.photos.length > 0 ? `<span class="photo-indicator">📷 ${day.photos.length}</span>` : ''}
+                            ${Array.isArray(day.photos) && day.photos.length > 0 ? buildMiniThumbsHtml(index, dayIndex) : ''}
+                        </div>
+                        <button class="edit-day-button" id="edit-btn-${dayIndex}" onclick="event.stopPropagation(); openIncassoModal(${index}, ${dayIndex})">
+                            ${day.value > 0 ? 'Modifica' : 'Inserisci Incasso'}
+                        </button>
+                    </td>
+                `;
+                tr.addEventListener('click', () => openDaySummaryModal(index, dayIndex));
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('dailyModal').style.display = 'block';
+            updateCloseAllBtn();
+        }
+
+        function startEdit(monthIndex, dayIndex) {
+            document.getElementById(`display-${dayIndex}`).style.display = 'none';
+            document.getElementById(`edit-btn-${dayIndex}`).style.display = 'none';
+            document.getElementById(`edit-container-${dayIndex}`).classList.add('show');
+            document.getElementById(`edit-input-${dayIndex}`).focus();
+        }
+
+        function saveEdit(monthIndex, dayIndex) {
+            const newValue = document.getElementById(`edit-input-${dayIndex}`).value;
+            updateDailyValue(monthIndex, dayIndex, newValue);
+            closeModal();
+            openMonthDetails(monthIndex);
+        }
+
+        function cancelEdit(dayIndex) {
+            document.getElementById(`display-${dayIndex}`).style.display = 'block';
+            document.getElementById(`edit-btn-${dayIndex}`).style.display = 'block';
+            document.getElementById(`edit-container-${dayIndex}`).classList.remove('show');
+        }
+
+        function closeModal() {
+            document.getElementById('dailyModal').style.display = 'none';
+            updateCloseAllBtn();
+        }
+
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('dailyModal');
+            const logModal = document.getElementById('logModal');
+            const incassoModal = document.getElementById('incassoModal');
+
+            if (event.target == modal) {
+                closeModal();
+            }
+            if (event.target == logModal) {
+                closeLogModal();
+            }
+            if (event.target == incassoModal) {
+                closeIncassoModal();
+            }
+        }
+
+        function calculatePercentage(value) {
+            for (let threshold of thresholds) {
+                if (value <= threshold.limit) {
+                    return threshold.percentage;
+                }
+            }
+            return 0.035;
+        }
+
+        function calculateAmount(value) {
+            const percentage = calculatePercentage(value);
+            return value * percentage;
+        }
+
+        function formatCurrency(value) {
+            return '€ ' + value.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        }
+
+
+        // Numero italiano: accetta 25.000,00 oppure 25000,00 (Versione 62)
+        function parseItalianNumber(input) {
+            if (input === null || input === undefined) return 0;
+            let s = String(input).trim();
+            if (!s) return 0;
+            // rimuove simboli e spazi
+            s = s.replace(/[^0-9,\.-]/g, '');
+            // rimuove separatori migliaia (.)
+            s = s.replace(/\.(?=\d{3}(?:[,\.]|$))/g, '');
+            // converte virgola in punto
+            s = s.replace(',', '.');
+            const n = parseFloat(s);
+            return isNaN(n) ? 0 : n;
+        }
+
+        // Mini anteprime nel mese (Versione 62)
+        function buildMiniThumbsHtml(monthIndex, dayIndex) {
+            const photos = (data?.[monthIndex]?.dailyData?.[dayIndex]?.photos) || [];
+            if (!Array.isArray(photos) || photos.length === 0) return '';
+
+            const maxThumbs = 3;
+            const thumbs = photos.slice(0, maxThumbs).map((src, i) => {
+                return `
+                    <div class="mini-thumb" onclick=\"event.stopPropagation(); openPhotoLightboxFromDay(${monthIndex}, ${dayIndex}, ${i})\">
+                        <img src="${src}" alt="thumb">
+                    </div>`;
+            }).join('');
+
+            const moreCount = photos.length - maxThumbs;
+            const more = moreCount > 0 ? `
+                <div class="mini-more" onclick=\"event.stopPropagation(); openPhotoLightboxFromDay(${monthIndex}, ${dayIndex}, 0)\">+${moreCount}</div>` : '';
+
+            return `
+                <div class="day-photos-mini">
+                    ${thumbs}
+                    ${more}
+                </div>`;
+        }
+
+        // Lightbox Foto (Versione 62)
+        let photoLightboxState = {
+            photos: [],
+            index: 0
+        };
+
+        function openPhotoLightboxFromDay(monthIndex, dayIndex, photoIndex) {
+            const photos = (data?.[monthIndex]?.dailyData?.[dayIndex]?.photos) || [];
+            openPhotoLightbox(photos, photoIndex || 0);
+        }
+
+        function openPhotoLightbox(photos, startIndex) {
+            if (!Array.isArray(photos) || photos.length === 0) return;
+            photoLightboxState.photos = photos;
+            photoLightboxState.index = Math.max(0, Math.min(startIndex || 0, photos.length - 1));
+            document.getElementById('photoLightbox').style.display = 'block';
+            renderPhotoLightbox();
+        }
+
+        function closePhotoLightbox() {
+            document.getElementById('photoLightbox').style.display = 'none';
+        }
+
+        function renderPhotoLightbox() {
+            const img = document.getElementById('photoLightboxImg');
+            const count = document.getElementById('photoLightboxCount');
+            const title = document.getElementById('photoLightboxTitle');
+
+            const photos = photoLightboxState.photos;
+            const i = photoLightboxState.index;
+
+            img.src = photos[i];
+            count.textContent = `${i + 1} / ${photos.length}`;
+            title.textContent = `📷 Foto (${photos.length})`;
+        }
+
+        function photoPrev() {
+            const photos = photoLightboxState.photos;
+            if (!photos.length) return;
+            photoLightboxState.index = (photoLightboxState.index - 1 + photos.length) % photos.length;
+            renderPhotoLightbox();
+        }
+
+        function photoNext() {
+            const photos = photoLightboxState.photos;
+            if (!photos.length) return;
+            photoLightboxState.index = (photoLightboxState.index + 1) % photos.length;
+            renderPhotoLightbox();
+        }
+
+        // Chiudi lightbox cliccando fuori
+        document.addEventListener('click', function(e) {
+            const lb = document.getElementById('photoLightbox');
+            if (lb && e.target === lb) closePhotoLightbox();
+        });
+
+        // Miglior UX importo incasso (Versione 62)
+        function setupIncassoAmountInput() {
+            const el = document.getElementById('incassoAmount');
+            if (!el) return;
+
+            el.addEventListener('focus', () => {
+                // seleziona tutto per inserimenti veloci
+                setTimeout(() => el.select(), 0);
+            });
+
+            el.addEventListener('blur', () => {
+                const n = parseItalianNumber(el.value);
+                el.value = n.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            });
+        }
+
+
+        // ====== Persistenza Incassi Giornalieri + Foto (Versione 60) ======
+        const DAILY_STORAGE_KEY = 'malagaDailyEntries_v60';
+
+        function getDailyStore() {
+            try {
+                const raw = localStorage.getItem(DAILY_STORAGE_KEY);
+                return raw ? JSON.parse(raw) : {};
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function saveDailyStore(store) {
+            if (!window.__LOCAL_CACHE_ENABLED) return;
+            localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify(store));
+        }
+
+        function persistDailyEntry(monthLabel, dayNumber, value, photos) {
+            if (window.__FB_ENABLED) {
+                firebaseUpsertDailyEntry(monthLabel, dayNumber, value, photos).catch(() => {});
+                return;
+            }
+            const store = getDailyStore();
+            if (!store[monthLabel]) store[monthLabel] = {};
+            store[monthLabel][String(dayNumber)] = {
+                value: Number(value) || 0,
+                photos: Array.isArray(photos) ? photos : []
+            };
+            saveDailyStore(store);
+        }
+
+        function applyPersistedDailyData(monthData) {
+            if (window.__FB_ENABLED) return;
+            const store = getDailyStore();
+            const monthStore = store[monthData.month];
+            if (!monthStore) return;
+
+            monthData.dailyData.forEach(d => {
+                const saved = monthStore[String(d.day)];
+                if (saved && typeof saved.value !== 'undefined') {
+                    d.value = Number(saved.value) || 0;
+                    d.photos = Array.isArray(saved.photos) ? saved.photos : [];
+                }
+            });
+        }
+
+        // Giorno breve per il Registro: "1 set", "5 ott", "23 nov" (Versione 63)
+        function formatShortDayLabel(day, monthLabel) {
+            if (day === 'Totale') return 'Totale';
+            const dayNum = parseInt(day, 10);
+            if (!dayNum) return String(day);
+            const abbr = String(monthLabel || '').trim().slice(0,3).toLowerCase();
+            return `${dayNum} ${abbr}`;
+        }
+
+        // Giorno in italiano per il Registro: "5 gennaio", "23 ottobre", ecc.
+        function formatItalianDayLabel(day, monthLabel) {
+            if (day === 'Totale') return 'Totale';
+            const dayNum = parseInt(day, 10);
+            if (!dayNum) return String(day);
+
+            const map = {
+                'Gen': 'gennaio',
+                'Feb': 'febbraio',
+                'Mar': 'marzo',
+                'Apr': 'aprile',
+                'Mag': 'maggio',
+                'Giu': 'giugno',
+                'Lug': 'luglio',
+                'Ago': 'agosto',
+                'Set': 'settembre',
+                'Ott': 'ottobre',
+                'Nov': 'novembre',
+                'Dic': 'dicembre'
+            };
+
+            const abbr = String(monthLabel || '').trim().slice(0,3);
+            const full = map[abbr] || 'mese';
+            return `${dayNum} ${full}`;
+        }
+
+        // ====== Modal Incasso + Foto (Versione 60) ======
+        let incassoModalState = {
+            monthIndex: null,
+            dayIndex: null,
+            photos: []
+        };
+
+        function openIncassoModal(monthIndex, dayIndex) {
+            const monthData = data[monthIndex];
+            const dayData = monthData.dailyData[dayIndex];
+
+            if (!Array.isArray(dayData.photos)) dayData.photos = [];
+
+            incassoModalState.monthIndex = monthIndex;
+            incassoModalState.dayIndex = dayIndex;
+            incassoModalState.photos = [...dayData.photos];
+
+            const titleDay = formatItalianDayLabel(dayData.day, monthData.month);
+            document.getElementById('incassoModalTitle').textContent = `💶 Incasso • ${titleDay} • ${monthData.month}`;
+
+            const amountInput = document.getElementById('incassoAmount');
+            amountInput.value = (Number(dayData.value) || 0).toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            const fileInput = document.getElementById('incassoPhotosInput');
+            fileInput.value = '';
+
+            renderPhotoPreview();
+            document.getElementById('incassoModal').style.display = 'block';
+            updateCloseAllBtn();
+            setTimeout(() => amountInput.focus(), 50);
+        }
+
+        function closeIncassoModal() {
+            document.getElementById('incassoModal').style.display = 'none';
+            updateCloseAllBtn();
+        }
+
+        function renderPhotoPreview() {
+            const grid = document.getElementById('photoPreviewGrid');
+            grid.innerHTML = '';
+
+            if (!incassoModalState.photos.length) return;
+
+            incassoModalState.photos.forEach((src, i) => {
+                const div = document.createElement('div');
+                div.className = 'photo-preview-item';
+                div.innerHTML = `
+                    <img src="${src}" alt="foto-${i}">
+                    <button class="photo-remove-btn" title="Rimuovi" onclick="removePhotoAt(${i})">×</button>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function removePhotoAt(index) {
+            incassoModalState.photos.splice(index, 1);
+            renderPhotoPreview();
+        }
+
+        // Compressione immagini per Firestore (limite 1MB per documento)
+        function compressImage(file, maxWidth = 1200, maxHeight = 1200, quality = 0.7) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Ridimensiona mantenendo proporzioni
+                        if (width > maxWidth || height > maxHeight) {
+                            const ratio = Math.min(maxWidth / width, maxHeight / height);
+                            width = Math.round(width * ratio);
+                            height = Math.round(height * ratio);
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Comprimi come JPEG
+                        const compressed = canvas.toDataURL('image/jpeg', quality);
+                        resolve(compressed);
+                    };
+                    img.onerror = () => reject(new Error('Errore caricamento immagine'));
+                    img.src = e.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function filesToBase64(files) {
+            const tasks = Array.from(files).map(file => compressImage(file));
+            return Promise.all(tasks);
+        }
+
+        async function handlePhotoInputChange(event) {
+            const files = event.target.files;
+            if (!files || !files.length) return;
+
+            const uploaderText = document.querySelector('.photo-uploader-text');
+            const originalText = uploaderText ? uploaderText.textContent : '';
+
+            try {
+                // Feedback visivo
+                if (uploaderText) uploaderText.textContent = '⏳ Elaborazione foto...';
+
+                const base64List = await filesToBase64(files);
+                incassoModalState.photos.push(...base64List);
+                renderPhotoPreview();
+
+                if (uploaderText) uploaderText.textContent = originalText;
+            } catch (e) {
+                console.error('Errore caricamento foto:', e);
+                if (uploaderText) uploaderText.textContent = originalText;
+                alert('Errore nel caricamento delle foto. Riprova.');
+            }
+
+            // Reset input per permettere ri-selezione stesso file
+            event.target.value = '';
+        }
+
+        function updateDailyEntry(monthIndex, dayIndex, newValue, photos, logMeta = null) {
+            const parsedValue = parseItalianNumber(newValue);
+            const safePhotos = Array.isArray(photos) ? photos : [];
+
+            data[monthIndex].dailyData[dayIndex].value = parsedValue;
+            data[monthIndex].dailyData[dayIndex].photos = safePhotos;
+
+            // Persistenza locale (Base64)
+            persistDailyEntry(
+                data[monthIndex].month,
+                data[monthIndex].dailyData[dayIndex].day,
+                parsedValue,
+                safePhotos
+            );
+
+            // Firebase upsert
+            if (window.__FB_ENABLED) {
+                firebaseUpsertDailyEntry(data[monthIndex].month, data[monthIndex].dailyData[dayIndex].day, parsedValue, safePhotos)
+                  .catch(e => {
+                      console.error('Firebase save error:', e);
+                      // Mostra errore solo se riguarda le foto (dimensione)
+                      if (safePhotos.length > 0 && e.message && e.message.includes('size')) {
+                          alert('Errore: le foto sono troppo grandi. Prova con meno foto o foto più piccole.');
+                      }
+                  });
+            }
+
+            // Ricalcolo totale mese
+            const monthTotal = data[monthIndex].dailyData.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+            data[monthIndex].value = Math.round(monthTotal * 100) / 100;
+
+            // Registro (con dettaglio)
+            addLogEntry(
+                data[monthIndex].month,
+                data[monthIndex].dailyData[dayIndex].day,
+                parsedValue,
+                Object.assign({ photos: safePhotos }, (logMeta || {}))
+            );
+
+            renderTable();
+            calculateStats();
+        }
+
+        function updateDailyValue(monthIndex, dayIndex, newValue) {
+            const photos = data[monthIndex].dailyData[dayIndex].photos || [];
+            updateDailyEntry(monthIndex, dayIndex, newValue, photos);
+        }
+
+        function confirmIncassoModal() {
+            const monthIndex = incassoModalState.monthIndex;
+            const dayIndex = incassoModalState.dayIndex;
+            if (monthIndex === null || dayIndex === null) return;
+
+            const amountInput = document.getElementById('incassoAmount');
+            const newValue = parseItalianNumber(amountInput.value);
+
+            const oldValue = Number(data[monthIndex].dailyData[dayIndex].value) || 0;
+            const oldPhotos = Array.isArray(data[monthIndex].dailyData[dayIndex].photos) ? data[monthIndex].dailyData[dayIndex].photos : [];
+            const newPhotos = Array.isArray(incassoModalState.photos) ? incassoModalState.photos : [];
+
+            const isNew = (oldValue === 0 && oldPhotos.length === 0);
+            const action = isNew ? 'Inserimento' : 'Modifica';
+
+            const detailParts = [];
+            if (oldValue !== newValue) {
+                detailParts.push(`Importo: ${formatCurrency(oldValue)} → ${formatCurrency(newValue)}`);
+            }
+
+            // Foto changes
+            const oldLen = oldPhotos.length;
+            const newLen = newPhotos.length;
+            const samePhotos = oldLen === newLen && oldPhotos.every((p, i) => p === newPhotos[i]);
+
+            if (!samePhotos) {
+                if (oldLen === 0 && newLen > 0) {
+                    detailParts.push(`Inserimento foto: ${newLen}`);
+                } else if (oldLen > 0 && newLen === 0) {
+                    detailParts.push('Rimozione foto');
+                } else {
+                    detailParts.push(`Sostituzione/Aggiornamento foto: ${oldLen} → ${newLen}`);
+                }
+            }
+
+            const details = detailParts.join(' • ');
+
+            updateDailyEntry(monthIndex, dayIndex, newValue, newPhotos, {
+                oldValue: oldValue,
+                action: action,
+                details: details
+            });
+
+            closeIncassoModal();
+            closeModal();
+            openMonthDetails(monthIndex);
+        }
+
+        function getPercentageClass(percentage) {
+            if (percentage <= 0.02) return 'level1';
+            if (percentage <= 0.025) return 'level2';
+            if (percentage <= 0.03) return 'level3';
+            return 'level4';
+        }
+
+        function formatPercentage(value) {
+            return (value * 100).toLocaleString('it-IT', {minimumFractionDigits: 0, maximumFractionDigits: 1}) + '%';
+        }
+
+        // Palette colori per i pulsanti dei mesi (Versione 59)
+        function getMonthPillColors(index, monthLabel) {
+            // 12 coppie (BG, TEXT) — leggibili sia su desktop che mobile
+            const palette = [
+                { bg: '#ff6b6b', text: '#ffffff' },
+                { bg: '#ff922b', text: '#ffffff' },
+                { bg: '#f59f00', text: '#1f2d3d' },
+                { bg: '#51cf66', text: '#0b1f12' },
+                { bg: '#20c997', text: '#072018' },
+                { bg: '#22b8cf', text: '#061a1f' },
+                { bg: '#339af0', text: '#ffffff' },
+                { bg: '#5c7cfa', text: '#ffffff' },
+                { bg: '#845ef7', text: '#ffffff' },
+                { bg: '#be4bdb', text: '#ffffff' },
+                { bg: '#e64980', text: '#ffffff' },
+                { bg: '#adb5bd', text: '#1f2d3d' }
+            ];
+
+            // Se vuoi una logica fissa per mese, puoi ruotare in base al label
+            const i = Math.abs(index) % palette.length;
+            return palette[i];
+        }
+
+        function updateValue(index, newValue) {
+            const parsedValue = parseItalianNumber(newValue);
+            data[index].value = parsedValue;
+            
+            // Registra la modifica nel log (modifica diretta mensile)
+            addLogEntry(
+                data[index].month,
+                'Totale',
+                parsedValue
+            );
+            
+            renderTable();
+            calculateStats();
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('dataTable');
+            tbody.innerHTML = '';
+
+            data.forEach((row, index) => {
+                const percentage = calculatePercentage(row.value);
+                const amount = calculateAmount(row.value);
+                
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="month-badge" id="month-${index}" style="--monthBg: ${getMonthPillColors(index, row.month).bg}; --monthText: ${getMonthPillColors(index, row.month).text};">${row.month}</span></td>
+                    <td class="non-editable-cell month-total">${formatCurrency(row.value)}</td>
+                    <td>${formatCurrency(amount)}</td>
+                    <td><span class="percentage ${getPercentageClass(percentage)}">${formatPercentage(percentage)}</span></td>
+                `;
+                tbody.appendChild(tr);
+                
+                setTimeout(() => {
+                    document.getElementById(`month-${index}`).addEventListener('click', function() {
+                        openMonthDetails(index);
+                    });
+                }, 0);
+            });
+        }
+
+        function toggleBreakdown() {
+            const dropdown = document.getElementById('breakdownDropdown');
+            const arrow = document.getElementById('dropdownArrow');
+            
+            dropdown.classList.toggle('show');
+            arrow.classList.toggle('open');
+        }
+
+        // Chiudi dropdown cliccando fuori
+        document.addEventListener('click', function(event) {
+            const statBox = document.querySelector('.stat-box');
+            const dropdown = document.getElementById('breakdownDropdown');
+            const arrow = document.getElementById('dropdownArrow');
+            
+            if (!statBox.contains(event.target) && dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+                arrow.classList.remove('open');
+            }
+        });
+
+        function getLastUpdateDate() {
+            let lastDate = null;
+            
+            data.forEach(monthData => {
+                if (monthData.dailyData && monthData.dailyData.length > 0) {
+                    for (let i = monthData.dailyData.length - 1; i >= 0; i--) {
+                        if (monthData.dailyData[i].value > 0) {
+                            const date = new Date(monthData.year, monthData.monthNum - 1, monthData.dailyData[i].day);
+                            if (!lastDate || date > lastDate) {
+                                lastDate = date;
+                            }
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            return lastDate;
+        }
+
+        function formatDate(date) {
+            if (!date) return '--/--/----';
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function calculateStats() {
+            const breakdown = [];
+            let totalImport = 0;
+            
+            data.forEach(row => {
+                const amount = calculateAmount(row.value);
+                if (row.value > 0) {
+                    breakdown.push({
+                        month: row.month,
+                        amount: amount
+                    });
+                    totalImport += amount;
+                }
+            });
+            
+            // Aggiorna la data di ultimo aggiornamento
+            const lastDate = getLastUpdateDate();
+            document.getElementById('updateDate').textContent = `Aggiornato al ${formatDate(lastDate)}`;
+            
+            // Popola il breakdown dropdown
+            const dropdownContent = document.getElementById('breakdownDropdown');
+            dropdownContent.innerHTML = '';
+            
+            breakdown.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'breakdown-item';
+                div.innerHTML = `
+                    <span class="breakdown-month">${item.month}</span>
+                    <span class="breakdown-amount">${formatCurrency(item.amount)}</span>
+                `;
+                dropdownContent.appendChild(div);
+            });
+            
+            // Aggiungi il totale
+            const totalDiv = document.createElement('div');
+            totalDiv.className = 'breakdown-item';
+            totalDiv.innerHTML = `
+                <span class="breakdown-month">TOTALE</span>
+                <span class="breakdown-amount">${formatCurrency(totalImport)}</span>
+            `;
+            dropdownContent.appendChild(totalDiv);
+            
+            // Non mostrare più il totale direttamente
+            document.getElementById('totalImport').textContent = 'Clicca per vedere';
+        }
+
+        initializeDailyData();
+        renderTable();
+        setupIncassoAmountInput();
+        calculateStats();
+
+    </script>
+
+
+
+
+    <!-- Firebase CDN (Versione 82) -->
+    <script type="module">
+      // Firebase via CDN (modular SDK) — docs ufficiale
+      // Nota: questa parte NON espone segreti, ma usa la config del tuo progetto.
+      import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
+      import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
+      import {
+        getFirestore,
+        collection, doc, getDoc, setDoc, updateDoc, addDoc,
+        getDocs, query, where, orderBy, limit,
+        serverTimestamp
+      } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js';
+      // Versione 82: NON usiamo Firebase Storage. Le foto vengono compresse e salvate in Firestore come Base64.
+
+      const cfg = window.FIREBASE_CONFIG || null;
+
+      // Salva l'ultimo errore Firebase per mostrarlo all'utente
+      window.__FIREBASE_LAST_ERROR = null;
+
+      // Piccolo helper per mostrare errori Firebase in pagina (solo debug)
+      function showFbStatus(message) {
+        try {
+          const box = document.getElementById('fbStatus');
+          const txt = document.getElementById('fbStatusText');
+          if (!box || !txt) return;
+          txt.innerHTML = message;
+          box.style.display = 'block';
+        } catch (_) {}
+      }
+
+      window.firebaseReady = new Promise(async (resolve) => {
+        try {
+          if (!cfg || !cfg.apiKey) {
+            console.warn('[Firebase] Config mancante → uso modalità locale.');
+            window.__FIREBASE_LAST_ERROR = 'Config Firebase mancante';
+            showFbStatus('Config Firebase <b>mancante</b>.\n<br>Incolla la config in <code>window.FIREBASE_CONFIG</code> nel &lt;head&gt;.');
+            return resolve({ enabled: false });
+          }
+
+          console.log('[Firebase] Inizializzazione con config:', cfg.projectId);
+          const app = initializeApp(cfg);
+          const auth = getAuth(app);
+          const db = getFirestore(app);
+
+          // Accesso anonimo (abilitalo in Firebase → Authentication)
+          try {
+            console.log('[Firebase] Tentativo login anonimo...');
+            await signInAnonymously(auth);
+            console.log('[Firebase] ✅ Login anonimo riuscito!');
+          } catch (e) {
+            console.error('[Firebase] ❌ Anon login fallito:', e);
+            const m = (e && e.message) ? e.message : String(e);
+            window.__FIREBASE_LAST_ERROR = 'Auth anonima fallita: ' + m;
+            showFbStatus(
+              'Anon login <b>fallito</b>:<br><code>' + m.replace(/</g,'&lt;') + '</code><br>' +
+              '<span style="opacity:.9">Controlla: API Key corretta (1≠l, V≠v), Authentication → Anonymous ON, e nessuna restrizione sulla API Key in Google Cloud.</span>'
+            );
+            // IMPORTANTE: se auth fallisce, non possiamo usare Firestore
+            return resolve({ enabled: false, error: e });
+          }
+
+          console.log('[Firebase] ✅ Pronto! Firestore db:', db ? 'OK' : 'ERRORE');
+          window.__FIREBASE_LAST_ERROR = null;
+          resolve({
+            enabled: true,
+            app, auth, db,
+            f: { collection, doc, getDoc, setDoc, updateDoc, addDoc, getDocs, query, where, orderBy, limit, serverTimestamp },
+            s: {}
+          });
+        } catch (e) {
+          console.error('[Firebase] Init error', e);
+          window.__FIREBASE_LAST_ERROR = 'Errore init: ' + (e.message || e);
+          showFbStatus('Errore inizializzazione: ' + (e.message || e));
+          resolve({ enabled: false, error: e });
+        }
+      });
+    </script>
+
+    <!-- Lightbox Foto (Versione 62) -->
+    <div id="photoLightbox" class="photo-lightbox">
+        <div class="photo-lightbox-content">
+            <div class="photo-lightbox-toolbar">
+                <div id="photoLightboxTitle">📷 Foto</div>
+                <div class="count" id="photoLightboxCount">1 / 1</div>
+                <button class="photo-lightbox-btn" onclick="closePhotoLightbox()">Chiudi ✕</button>
+            </div>
+            <div class="photo-lightbox-stage">
+                <div class="photo-nav prev" onclick="photoPrev()">‹</div>
+                <img id="photoLightboxImg" src="" alt="foto">
+                <div class="photo-nav next" onclick="photoNext()">›</div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
