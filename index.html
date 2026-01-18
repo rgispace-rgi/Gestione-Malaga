@@ -161,43 +161,11 @@
             transform: scale(1.05);
         }
 
-        .sync-button {
-            position: fixed;
-            top: 20px;
-            right: 210px;
-            background: white;
-            color: #667eea;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            transition: transform 0.2s, background 0.3s, color 0.3s;
-            z-index: 1000;
-            font-size: 18px;
-            min-width: 44px;
-            text-align: center;
-        }
-
-        .sync-button:hover {
-            transform: scale(1.05);
-        }
-
-        .sync-button.syncing {
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
         /* ===== Pulsante Admin (Versione 83) ===== */
         .admin-button {
             position: fixed;
             top: 20px;
-            left: 20px;
+            right: 210px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -400,8 +368,8 @@
 
         @media (max-width: 768px) {
             .admin-button {
-                top: 160px;
-                left: 10px;
+                top: 110px;
+                right: 10px;
                 padding: 8px 12px;
                 font-size: 12px;
             }
@@ -414,18 +382,19 @@
         }
 
 
-        /* ===== Pulsante chiudi tutto (Versione 64) ===== */
+        /* ===== Pulsante chiudi tutto (Versione 83 - centrato) ===== */
         .close-all-btn {
             position: fixed;
             top: 18px;
-            right: 18px;
-            width: 44px;
-            height: 44px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
             border-radius: 999px;
             border: none;
             background: #ff2d2d;
             color: white;
-            font-size: 22px;
+            font-size: 26px;
             font-weight: 900;
             cursor: pointer;
             box-shadow: 0 10px 24px rgba(0,0,0,0.35);
@@ -436,12 +405,12 @@
         }
 
         .close-all-btn:hover {
-            transform: scale(1.08);
+            transform: translateX(-50%) scale(1.08);
             filter: brightness(1.05);
         }
 
         .close-all-btn:active {
-            transform: scale(0.96);
+            transform: translateX(-50%) scale(0.96);
         }
 
         /* Modal aperto sotto un altro modal */
@@ -535,6 +504,62 @@
             padding: 40px;
             color: #999;
             font-style: italic;
+        }
+
+        /* Icone azioni nel log (Versione 83) */
+        .log-action {
+            white-space: nowrap;
+            font-size: 0.95em;
+        }
+
+        .action-icon {
+            display: inline-block;
+            padding: 2px 5px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            margin-right: 2px;
+        }
+
+        .action-new {
+            background: linear-gradient(135deg, #00c851, #007e33);
+            color: white;
+        }
+
+        .action-edit {
+            background: linear-gradient(135deg, #ffbb33, #ff8800);
+            color: white;
+        }
+
+        .action-money {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+        }
+
+        .action-photo-add {
+            background: linear-gradient(135deg, #2196F3, #1565C0);
+            color: white;
+        }
+
+        .action-photo-del {
+            background: linear-gradient(135deg, #f44336, #c62828);
+            color: white;
+        }
+
+        .action-photo-edit {
+            background: linear-gradient(135deg, #9c27b0, #6a1b9a);
+            color: white;
+        }
+
+        .action-update {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .log-month-small {
+            font-size: 0.75em;
+            color: #888;
+            display: block;
+            margin-top: 2px;
         }
 
         /* ====== Dettagli Registro & Giorno (Versione 63) ====== */
@@ -677,13 +702,6 @@
                 right: 10px;
                 padding: 8px 15px;
                 font-size: 0.9em;
-            }
-
-            .sync-button {
-                top: 110px;
-                right: 10px;
-                padding: 8px 12px;
-                font-size: 14px;
             }
 
             .log-table {
@@ -1752,7 +1770,6 @@
     <div class="main-content" id="mainContent">
         <button class="logout-button" onclick="handleLogout()">Esci</button>
         <button class="log-button" onclick="openLogModal()">📋 Registro</button>
-        <button class="sync-button" onclick="manualSync()" title="Sincronizza dati">🔄</button>
         <button class="admin-button" id="adminButton" onclick="openAdminPanel()" style="display:none;">👥 Admin</button>
         
         <div class="container">
@@ -1841,8 +1858,8 @@
                 <table class="log-table">
                     <thead>
                         <tr>
+                            <th>Azione</th>
                             <th>Giorno</th>
-                            <th>Mese</th>
                             <th>Incasso</th>
                             <th>Utente</th>
                         </tr>
@@ -2240,12 +2257,6 @@
                 };
             }
             
-            // Ferma animazione pulsante sync
-            const btn = document.querySelector('.sync-button');
-            if (btn) {
-                btn.classList.remove('syncing');
-            }
-            
             if (message) console.log('[Firebase]', message);
         }
 
@@ -2604,37 +2615,6 @@
             alert('✅ Utente eliminato!');
         }
 
-        // Sync manuale
-        async function manualSync() {
-            const btn = document.querySelector('.sync-button');
-            if (btn) {
-                btn.classList.add('syncing');
-            }
-            
-            // Timeout di sicurezza: ferma dopo 15 secondi
-            const safetyTimeout = setTimeout(() => {
-                if (btn) btn.classList.remove('syncing');
-                updateConnectionStatus(false, 'Timeout sync manuale');
-            }, 15000);
-            
-            try {
-                const success = await initFirebaseDataSync();
-                clearTimeout(safetyTimeout);
-                
-                if (success) {
-                    alert('✅ Sincronizzazione completata!\n\nI dati sono stati aggiornati dal cloud.');
-                } else {
-                    alert('⚠️ Firebase non connesso\n\nI dati sono solo locali su questo dispositivo.\n\nVerifica:\n1. Authentication → Anonymous abilitato\n2. Firestore Database creato\n3. Connessione internet attiva');
-                }
-            } catch (e) {
-                clearTimeout(safetyTimeout);
-                alert('❌ Errore sincronizzazione:\n' + e.message);
-                updateConnectionStatus(false);
-            } finally {
-                if (btn) btn.classList.remove('syncing');
-            }
-        }
-
 
         document.addEventListener('DOMContentLoaded', () => {
             // Controlla autenticazione all'avvio
@@ -2651,17 +2631,7 @@
                     console.error('[Firebase] Errore init sync:', e);
                     updateConnectionStatus(false, 'Errore: ' + e.message);
                 }
-                
-                // Ferma SEMPRE l'animazione dopo 10 secondi max
-                const btn = document.querySelector('.sync-button');
-                if (btn) btn.classList.remove('syncing');
             }, 800);
-            
-            // Fallback: ferma animazione dopo 12 secondi comunque
-            setTimeout(() => {
-                const btn = document.querySelector('.sync-button');
-                if (btn) btn.classList.remove('syncing');
-            }, 12000);
         });
 
         // Sistema di Registro (Log)
@@ -2752,6 +2722,62 @@
             return `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
         }
 
+        // Genera icone visive per le azioni del log
+        function generateActionIcons(entry) {
+            const icons = [];
+            const action = entry.action || '';
+            const details = entry.details || '';
+            const oldValue = entry.oldValue;
+            const newValue = entry.value;
+            
+            // Tipo di azione principale
+            if (action === 'Inserimento') {
+                icons.push('<span class="action-icon action-new" title="Nuovo inserimento">➕</span>');
+            } else if (action === 'Modifica') {
+                icons.push('<span class="action-icon action-edit" title="Modifica">✏️</span>');
+            }
+            
+            // Modifica importo
+            if (details.includes('Importo:') || (oldValue !== null && oldValue !== newValue)) {
+                icons.push('<span class="action-icon action-money" title="Modifica importo">💰</span>');
+            }
+            
+            // Foto
+            if (details.includes('foto')) {
+                if (details.includes('Inserimento foto')) {
+                    // Estrai numero foto
+                    const match = details.match(/Inserimento foto:\s*(\d+)/);
+                    const num = match ? match[1] : '1';
+                    icons.push(`<span class="action-icon action-photo-add" title="Foto aggiunte">+📷${num}</span>`);
+                } else if (details.includes('Rimozione foto')) {
+                    icons.push('<span class="action-icon action-photo-del" title="Foto rimosse">❌📷</span>');
+                } else if (details.includes('Sostituzione') || details.includes('Aggiornamento foto')) {
+                    // Estrai numeri da "X → Y"
+                    const match = details.match(/(\d+)\s*→\s*(\d+)/);
+                    if (match) {
+                        const oldNum = parseInt(match[1]);
+                        const newNum = parseInt(match[2]);
+                        if (newNum > oldNum) {
+                            icons.push(`<span class="action-icon action-photo-add" title="Foto aggiunte">+📷${newNum - oldNum}</span>`);
+                        } else if (newNum < oldNum) {
+                            icons.push(`<span class="action-icon action-photo-del" title="Foto rimosse">-📷${oldNum - newNum}</span>`);
+                        } else {
+                            icons.push('<span class="action-icon action-photo-edit" title="Foto modificate">🔄📷</span>');
+                        }
+                    } else {
+                        icons.push('<span class="action-icon action-photo-edit" title="Foto modificate">🔄📷</span>');
+                    }
+                }
+            }
+            
+            // Se nessuna icona specifica, usa icona generica
+            if (icons.length === 0) {
+                icons.push('<span class="action-icon action-update" title="Aggiornamento">📝</span>');
+            }
+            
+            return icons.join(' ');
+        }
+
         async function openLogModal() {
             const tbody = document.getElementById('logTableBody');
             tbody.innerHTML = '<tr><td colspan="4" class="log-empty">Caricamento...</td></tr>';
@@ -2765,9 +2791,10 @@
                 log.forEach(entry => {
                     const tr = document.createElement('tr');
                     const dayLabel = entry.dayShort || formatShortDayLabel(entry.day, entry.month);
+                    const actionIcons = generateActionIcons(entry);
                     tr.innerHTML = `
-                        <td>${dayLabel}</td>
-                        <td>${entry.month}</td>
+                        <td class="log-action">${actionIcons}</td>
+                        <td>${dayLabel} <span class="log-month-small">${entry.month}</span></td>
                         <td class="log-value">${formatCurrency(Number(entry.value) || 0)}</td>
                         <td class="log-user">${entry.username || '--'}</td>
                     `;
@@ -2844,7 +2871,7 @@
             const btn = document.getElementById('closeAllModalsBtn');
             if (!btn) return;
 
-            const ids = ['dailyModal','daySummaryModal','logDetailModal','incassoModal','logModal'];
+            const ids = ['dailyModal','daySummaryModal','logDetailModal','incassoModal','logModal','photoLightbox','adminModal'];
             let openCount = 0;
             ids.forEach(id => {
                 const el = document.getElementById(id);
@@ -2856,11 +2883,13 @@
 
         function closeAllModals() {
             // Chiude tutto in ordine (dal top al basso)
+            try { closePhotoLightbox(); } catch(e) {}
             try { closeIncassoModal(); } catch(e) {}
             try { closeLogDetailModal(); } catch(e) {}
             try { closeDaySummaryModal(); } catch(e) {}
             try { closeLogModal(); } catch(e) {}
             try { closeModal(); } catch(e) {}
+            try { closeAdminPanel(); } catch(e) {}
             updateCloseAllBtn();
         }
 
@@ -2870,7 +2899,8 @@
             const body = document.getElementById('logDetailBody');
 
             const giornoShort = entry.dayShort || formatShortDayLabel(entry.day, entry.month);
-            title.textContent = `🧾 Registro • ${giornoShort} • ${entry.month}`;
+            const actionIcons = generateActionIcons(entry);
+            title.innerHTML = `🧾 ${actionIcons} • ${giornoShort} • ${entry.month}`;
 
             const action = entry.action || (entry.day === 'Totale' ? 'Aggiornamento Totale' : 'Aggiornamento Giorno');
             const details = entry.details || '';
@@ -2878,19 +2908,24 @@
             body.innerHTML = '';
             const wrap = document.createElement('div');
 
-            const kv = (k, v) => {
+            const kv = (k, v, isHtml = false) => {
                 const row = document.createElement('div');
                 row.className = 'detail-kv';
-                row.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
+                if (isHtml) {
+                    row.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
+                } else {
+                    row.innerHTML = `<div class="k">${k}</div><div class="v"></div>`;
+                    row.querySelector('.v').textContent = v;
+                }
                 return row;
             };
 
+            wrap.appendChild(kv('Azione', actionIcons, true));
             wrap.appendChild(kv('Giorno', giornoShort));
             wrap.appendChild(kv('Mese', entry.month));
             wrap.appendChild(kv('Incasso', formatCurrency(Number(entry.value) || 0)));
             wrap.appendChild(kv('Utente', entry.username || '--'));
             wrap.appendChild(kv('Data/Ora', entry.formattedDate || '--'));
-            wrap.appendChild(kv('Tipo', action));
 
             if (typeof entry.oldValue === 'number' && entry.oldValue !== null && entry.oldValue !== Number(entry.value)) {
                 wrap.appendChild(kv('Modifica Importo', `${formatCurrency(entry.oldValue)} → ${formatCurrency(Number(entry.value) || 0)}`));
@@ -2987,11 +3022,11 @@
                 entries.forEach(entry => {
                     const item = document.createElement('div');
                     item.className = 'activity-item';
-                    const action = entry.action || 'Aggiornamento';
+                    const actionIcons = generateActionIcons(entry);
                     const dayLabel = entry.dayShort || formatShortDayLabel(entry.day, entry.month);
                     item.innerHTML = `
                         <div class="top">
-                            <div class="left">${action}</div>
+                            <div class="left">${actionIcons}</div>
                             <div class="right">${entry.username || '--'}</div>
                         </div>
                         <div class="mid">${formatCurrency(Number(entry.value) || 0)} • ${dayLabel} • ${(entry.formattedDate || '')}</div>
@@ -3357,10 +3392,12 @@
             photoLightboxState.index = Math.max(0, Math.min(startIndex || 0, photos.length - 1));
             document.getElementById('photoLightbox').style.display = 'block';
             renderPhotoLightbox();
+            updateCloseAllBtn();
         }
 
         function closePhotoLightbox() {
             document.getElementById('photoLightbox').style.display = 'none';
+            updateCloseAllBtn();
         }
 
         function renderPhotoLightbox() {
