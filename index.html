@@ -509,50 +509,12 @@
         /* Icone azioni nel log (Versione 83) */
         .log-action {
             white-space: nowrap;
-            font-size: 0.95em;
+            font-size: 1em;
         }
 
         .action-icon {
-            display: inline-block;
-            padding: 2px 5px;
-            border-radius: 6px;
-            font-size: 0.85em;
-            margin-right: 2px;
-        }
-
-        .action-new {
-            background: linear-gradient(135deg, #00c851, #007e33);
-            color: white;
-        }
-
-        .action-edit {
-            background: linear-gradient(135deg, #ffbb33, #ff8800);
-            color: white;
-        }
-
-        .action-money {
-            background: linear-gradient(135deg, #4CAF50, #2E7D32);
-            color: white;
-        }
-
-        .action-photo-add {
-            background: linear-gradient(135deg, #2196F3, #1565C0);
-            color: white;
-        }
-
-        .action-photo-del {
-            background: linear-gradient(135deg, #f44336, #c62828);
-            color: white;
-        }
-
-        .action-photo-edit {
-            background: linear-gradient(135deg, #9c27b0, #6a1b9a);
-            color: white;
-        }
-
-        .action-update {
-            background: #e0e0e0;
-            color: #333;
+            display: inline;
+            margin-right: 3px;
         }
 
         .log-month-small {
@@ -560,6 +522,15 @@
             color: #888;
             display: block;
             margin-top: 2px;
+        }
+
+        .log-value-changed {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+
+        .log-value-empty {
+            color: #ccc;
         }
 
         /* ====== Dettagli Registro & Giorno (Versione 63) ====== */
@@ -1858,9 +1829,9 @@
                 <table class="log-table">
                     <thead>
                         <tr>
-                            <th>Azione</th>
                             <th>Giorno</th>
-                            <th>Incasso</th>
+                            <th>Azione</th>
+                            <th>Importo</th>
                             <th>Utente</th>
                         </tr>
                     </thead>
@@ -2026,15 +1997,188 @@
         // Listener foto incasso (Versione 82)
 
         // ==============================
-        // Firebase Data Layer (Versione 76)
+        // Firebase Data Layer (Versione 83 - con Cache Locale e Offline Sync)
         // ==============================
         // - Incassi giornalieri: Firestore collection 'malagaDailyEntries'
         // - Registro modifiche: Firestore collection 'malagaActivityLog'
-        // - Foto: Versione 82 → salvate come Base64 compresso (max 1200px, quality 0.7) in Firestore
-        // - Se FIREBASE_CONFIG non è impostato → fallback locale (localStorage)
+        // - Foto: salvate come Base64 compresso in Firestore
+        // - NUOVO: Cache locale per funzionamento offline
+        // - NUOVO: Coda offline per sync quando torni online
 
         window.__FB_ENABLED = false;
         window.__LOCAL_CACHE_ENABLED = true;
+        window.__OFFLINE_MODE = false;
+
+        // ===== SISTEMA CACHE LOCALE =====
+        const CACHE_KEYS = {
+            entries: 'malagaCache_entries',
+            log: 'malagaCache_log',
+            users: 'malagaCache_users',
+            offlineQueue: 'malagaOfflineQueue',
+            lastSync: 'malagaLastSync'
+        };
+
+        // Salva dati nella cache locale
+        function saveToLocalCache(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+                console.log(`[Cache] Salvato: ${key}`);
+            } catch (e) {
+                console.error('[Cache] Errore salvataggio:', e);
+            }
+        }
+
+        // Carica dati dalla cache locale
+        function loadFromLocalCache(key) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : null;
+            } catch (e) {
+                console.error('[Cache] Errore caricamento:', e);
+                return null;
+            }
+        }
+
+        // Salva tutti gli incassi nella cache
+        function cacheAllEntries() {
+            const entries = {};
+            data.forEach(monthData => {
+                monthData.dailyData.forEach(day => {
+                    const key = `${monthData.month}_${day.day}`;
+                    entries[key] = {
+                        month: monthData.month,
+                        day: day.day,
+                        value: day.value,
+                        photos: day.photos || []
+                    };
+                });
+            });
+            saveToLocalCache(CACHE_KEYS.entries, entries);
+            saveToLocalCache(CACHE_KEYS.lastSync, new Date().toISOString());
+        }
+
+        // Carica incassi dalla cache
+        function loadEntriesFromCache() {
+            const entries = loadFromLocalCache(CACHE_KEYS.entries);
+            if (!entries) return false;
+
+            let loaded = 0;
+            Object.values(entries).forEach(e => {
+                const monthIndex = data.findIndex(m => m.month === e.month);
+                if (monthIndex < 0) return;
+
+                const dayIndex = data[monthIndex].dailyData.findIndex(d => Number(d.day) === Number(e.day));
+                if (dayIndex < 0) return;
+
+                data[monthIndex].dailyData[dayIndex].value = Number(e.value) || 0;
+                data[monthIndex].dailyData[dayIndex].photos = Array.isArray(e.photos) ? e.photos : [];
+                loaded++;
+            });
+
+            // Ricalcola totali
+            data.forEach(monthData => {
+                const total = monthData.dailyData.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+                monthData.value = Math.round(total * 100) / 100;
+            });
+
+            console.log(`[Cache] Caricati ${loaded} incassi dalla cache`);
+            return loaded > 0;
+        }
+
+        // Salva il registro nella cache
+        function cacheLog(logEntries) {
+            saveToLocalCache(CACHE_KEYS.log, logEntries);
+        }
+
+        // Carica registro dalla cache
+        function loadLogFromCache() {
+            return loadFromLocalCache(CACHE_KEYS.log) || [];
+        }
+
+        // ===== CODA OFFLINE =====
+        function getOfflineQueue() {
+            return loadFromLocalCache(CACHE_KEYS.offlineQueue) || [];
+        }
+
+        function addToOfflineQueue(action) {
+            const queue = getOfflineQueue();
+            action.timestamp = new Date().toISOString();
+            action.id = `${Date.now()}-${Math.random().toString(16).slice(2,8)}`;
+            queue.push(action);
+            saveToLocalCache(CACHE_KEYS.offlineQueue, queue);
+            console.log('[Offline] Aggiunto alla coda:', action.type);
+            updateOfflineBadge();
+        }
+
+        function clearOfflineQueue() {
+            saveToLocalCache(CACHE_KEYS.offlineQueue, []);
+            updateOfflineBadge();
+        }
+
+        function updateOfflineBadge() {
+            const queue = getOfflineQueue();
+            const badge = document.getElementById('connectionBadge');
+            if (badge && queue.length > 0 && !window.__FB_ENABLED) {
+                badge.textContent = `📱 Offline (${queue.length} in coda)`;
+            }
+        }
+
+        // Processa la coda offline quando torni online
+        async function processOfflineQueue() {
+            const queue = getOfflineQueue();
+            if (queue.length === 0) return;
+
+            console.log(`[Offline] Elaborazione coda: ${queue.length} elementi`);
+            const badge = document.getElementById('connectionBadge');
+            if (badge) {
+                badge.textContent = '🔄 Sincronizzazione...';
+                badge.style.background = 'linear-gradient(135deg, #2196F3, #1565C0)';
+            }
+
+            let processed = 0;
+            for (const action of queue) {
+                try {
+                    if (action.type === 'upsertEntry') {
+                        await firebaseUpsertDailyEntry(action.month, action.day, action.value, action.photos);
+                        processed++;
+                    } else if (action.type === 'addLog') {
+                        await firebaseAddLogEntry(action.entry);
+                        processed++;
+                    }
+                } catch (e) {
+                    console.error('[Offline] Errore sync:', e);
+                }
+            }
+
+            clearOfflineQueue();
+            console.log(`[Offline] Sincronizzati ${processed}/${queue.length} elementi`);
+
+            // Ricarica dati da Firebase
+            await initFirebaseDataSync();
+        }
+
+        // Rileva stato online/offline
+        function setupOnlineDetection() {
+            window.addEventListener('online', async () => {
+                console.log('[Network] Tornato online!');
+                window.__OFFLINE_MODE = false;
+                
+                // Riprova connessione Firebase
+                const svc = await fbSvc();
+                if (svc.enabled) {
+                    await processOfflineQueue();
+                }
+            });
+
+            window.addEventListener('offline', () => {
+                console.log('[Network] Offline!');
+                window.__OFFLINE_MODE = true;
+                updateConnectionStatus(false, 'Offline');
+            });
+
+            // Stato iniziale
+            window.__OFFLINE_MODE = !navigator.onLine;
+        }
         
         // Fallback: se il modulo Firebase non carica entro 8 secondi, usa modalità locale
         if (!window.firebaseReady) {
@@ -2114,7 +2258,30 @@
 
         async function firebaseUpsertDailyEntry(monthLabel, dayNumber, value, photos) {
             const svc = await fbSvc();
-            if (!svc.enabled) return false;
+            
+            // Se Firebase non è disponibile, aggiungi alla coda offline
+            if (!svc.enabled) {
+                addToOfflineQueue({
+                    type: 'upsertEntry',
+                    month: monthLabel,
+                    day: dayNumber,
+                    value: value,
+                    photos: photos
+                });
+                
+                // Aggiorna cache locale
+                const cacheKey = `${monthLabel}_${dayNumber}`;
+                const entries = loadFromLocalCache(CACHE_KEYS.entries) || {};
+                entries[cacheKey] = {
+                    month: monthLabel,
+                    day: dayNumber,
+                    value: value,
+                    photos: photos || []
+                };
+                saveToLocalCache(CACHE_KEYS.entries, entries);
+                
+                return true; // Restituisce true perché è stato salvato localmente
+            }
 
             const { db, f: F } = svc;
             const username = getCurrentUsername();
@@ -2130,6 +2297,9 @@
                 updatedBy: username,
                 updatedAt: F.serverTimestamp()
             }, { merge: true });
+
+            // Aggiorna cache locale dopo salvataggio riuscito
+            cacheAllEntries();
 
             return true;
         }
@@ -2151,11 +2321,33 @@
 
         async function firebaseAddLogEntry(entry) {
             const svc = await fbSvc();
-            if (!svc.enabled) return false;
+            
+            // Se Firebase non è disponibile, aggiungi alla coda offline
+            if (!svc.enabled) {
+                addToOfflineQueue({
+                    type: 'addLog',
+                    entry: entry
+                });
+                
+                // Aggiorna cache log locale
+                const cachedLog = loadLogFromCache() || [];
+                cachedLog.unshift(entry);
+                if (cachedLog.length > 500) cachedLog.pop();
+                cacheLog(cachedLog);
+                
+                return true;
+            }
 
             const { db, f: F } = svc;
             const payload = Object.assign({}, entry, { createdAt: F.serverTimestamp() });
             await F.addDoc(F.collection(db, 'malagaActivityLog'), payload);
+            
+            // Aggiorna cache log dopo salvataggio
+            const logEntries = await firebaseFetchLog(500);
+            if (logEntries && logEntries.length > 0) {
+                cacheLog(logEntries);
+            }
+            
             return true;
         }
 
@@ -2266,6 +2458,9 @@
         async function initFirebaseDataSync() {
             console.log('[Firebase] Inizializzazione sync...');
             
+            // Setup rilevamento online/offline
+            setupOnlineDetection();
+            
             try {
                 // Timeout di 8 secondi per la connessione Firebase
                 let svc = null;
@@ -2293,7 +2488,53 @@
                 window.__LOCAL_CACHE_ENABLED = !window.__FB_ENABLED;
                 
                 if (!svc || !svc.enabled) {
-                    console.warn('[Firebase] Non abilitato - usando localStorage');
+                    console.warn('[Firebase] Non abilitato - provo cache locale');
+                    
+                    // Prova a caricare dalla cache
+                    const cacheLoaded = loadEntriesFromCache();
+                    const cachedLog = loadLogFromCache();
+                    const lastSync = loadFromLocalCache(CACHE_KEYS.lastSync);
+                    
+                    if (cacheLoaded) {
+                        console.log('[Cache] Dati caricati dalla cache');
+                        renderTable();
+                        calculateStats();
+                        
+                        // Mostra ultimo sync
+                        let statusMsg = '📱 Offline';
+                        if (lastSync) {
+                            const syncDate = new Date(lastSync);
+                            statusMsg += ` (${syncDate.toLocaleDateString('it-IT')} ${syncDate.toLocaleTimeString('it-IT', {hour:'2-digit', minute:'2-digit'})})`;
+                        }
+                        
+                        const queue = getOfflineQueue();
+                        if (queue.length > 0) {
+                            statusMsg = `📱 Offline (${queue.length} da sync)`;
+                        }
+                        
+                        updateConnectionStatus(false, statusMsg);
+                        
+                        // Aggiorna badge con info cache
+                        const badge = document.getElementById('connectionBadge');
+                        if (badge) {
+                            badge.textContent = statusMsg;
+                            badge.onclick = () => {
+                                let msg = '📱 Modalità Offline\n\n';
+                                msg += 'I dati vengono letti dalla cache locale.\n\n';
+                                if (lastSync) {
+                                    msg += `Ultima sincronizzazione: ${new Date(lastSync).toLocaleString('it-IT')}\n\n`;
+                                }
+                                const q = getOfflineQueue();
+                                if (q.length > 0) {
+                                    msg += `⏳ ${q.length} modifiche in attesa di sincronizzazione.\n`;
+                                    msg += 'Verranno inviate quando torni online.';
+                                }
+                                alert(msg);
+                            };
+                        }
+                        return false;
+                    }
+                    
                     updateConnectionStatus(false, 'Firebase non abilitato');
                     return false;
                 }
@@ -2323,8 +2564,24 @@
                     data[i].value = Math.round(mergedTotal * 100) / 100;
                 }
 
+                // Salva nella cache locale
+                cacheAllEntries();
+                
+                // Carica e cache il log
+                const logEntries = await firebaseFetchLog(500);
+                if (logEntries && logEntries.length > 0) {
+                    cacheLog(logEntries);
+                }
+
                 renderTable();
                 calculateStats();
+                
+                // Processa eventuali modifiche offline in coda
+                const queue = getOfflineQueue();
+                if (queue.length > 0) {
+                    console.log(`[Offline] Trovate ${queue.length} modifiche in coda, processo...`);
+                    await processOfflineQueue();
+                }
                 
                 // Avvia listener realtime
                 startRealtimeSync();
@@ -2334,6 +2591,14 @@
                 return true;
             } catch (e) {
                 console.error('[Firebase] Errore sync:', e);
+                
+                // Prova cache come fallback
+                const cacheLoaded = loadEntriesFromCache();
+                if (cacheLoaded) {
+                    renderTable();
+                    calculateStats();
+                }
+                
                 updateConnectionStatus(false, 'Errore: ' + e.message);
                 return false;
             }
@@ -2381,6 +2646,9 @@
                 // Aggiorna UI
                 renderTable();
                 calculateStats();
+                
+                // Aggiorna cache locale
+                cacheAllEntries();
                 
                 // Flash visivo per indicare aggiornamento
                 const badge = document.getElementById('connectionBadge');
@@ -2682,10 +2950,22 @@
         async function fetchLog(maxItems = 500) {
             if (window.__FB_ENABLED) {
                 try {
-                    return await firebaseFetchLog(maxItems);
+                    const log = await firebaseFetchLog(maxItems);
+                    // Aggiorna cache
+                    if (log && log.length > 0) {
+                        cacheLog(log);
+                    }
+                    return log;
                 } catch (e) {
-                    return [];
+                    console.error('[Log] Errore fetch, uso cache:', e);
+                    return loadLogFromCache() || [];
                 }
+            }
+            
+            // Modalità offline: usa cache se disponibile, altrimenti localStorage
+            const cachedLog = loadLogFromCache();
+            if (cachedLog && cachedLog.length > 0) {
+                return cachedLog;
             }
             return getActivityLogLocal();
         }
@@ -2698,11 +2978,27 @@
                     return await firebaseFetchLogForDay(monthLabel, dayNum);
                 } catch (e) {
                     console.error('Errore fetchLogForDay Firebase:', e);
-                    return [];
+                    // Fallback alla cache
+                    const cachedLog = loadLogFromCache() || [];
+                    return cachedLog.filter(e => {
+                        const matchMonth = String(e.month) === String(monthLabel);
+                        const matchDay = Number(e.day) === dayNum || String(e.day) === String(dayNumber);
+                        return matchMonth && matchDay;
+                    });
                 }
             }
             
-            // Modalità locale - confronta sia come numero che come stringa
+            // Modalità offline - cerca nella cache
+            const cachedLog = loadLogFromCache();
+            if (cachedLog && cachedLog.length > 0) {
+                return cachedLog.filter(e => {
+                    const matchMonth = String(e.month) === String(monthLabel);
+                    const matchDay = Number(e.day) === dayNum || String(e.day) === String(dayNumber);
+                    return matchMonth && matchDay;
+                });
+            }
+            
+            // Fallback a localStorage vecchio
             const log = getActivityLogLocal();
             return log.filter(e => {
                 const matchMonth = String(e.month) === String(monthLabel);
@@ -2732,50 +3028,73 @@
             
             // Tipo di azione principale
             if (action === 'Inserimento') {
-                icons.push('<span class="action-icon action-new" title="Nuovo inserimento">➕</span>');
+                icons.push('➕');
             } else if (action === 'Modifica') {
-                icons.push('<span class="action-icon action-edit" title="Modifica">✏️</span>');
+                icons.push('✏️');
             }
             
             // Modifica importo
-            if (details.includes('Importo:') || (oldValue !== null && oldValue !== newValue)) {
-                icons.push('<span class="action-icon action-money" title="Modifica importo">💰</span>');
+            if (details.includes('Importo:') || (oldValue !== null && oldValue !== undefined && oldValue !== newValue)) {
+                icons.push('💰');
             }
             
             // Foto
             if (details.includes('foto')) {
                 if (details.includes('Inserimento foto')) {
-                    // Estrai numero foto
                     const match = details.match(/Inserimento foto:\s*(\d+)/);
                     const num = match ? match[1] : '1';
-                    icons.push(`<span class="action-icon action-photo-add" title="Foto aggiunte">+📷${num}</span>`);
+                    icons.push(`+📷${num}`);
                 } else if (details.includes('Rimozione foto')) {
-                    icons.push('<span class="action-icon action-photo-del" title="Foto rimosse">❌📷</span>');
+                    icons.push('❌📷');
                 } else if (details.includes('Sostituzione') || details.includes('Aggiornamento foto')) {
-                    // Estrai numeri da "X → Y"
                     const match = details.match(/(\d+)\s*→\s*(\d+)/);
                     if (match) {
                         const oldNum = parseInt(match[1]);
                         const newNum = parseInt(match[2]);
                         if (newNum > oldNum) {
-                            icons.push(`<span class="action-icon action-photo-add" title="Foto aggiunte">+📷${newNum - oldNum}</span>`);
+                            icons.push(`+📷${newNum - oldNum}`);
                         } else if (newNum < oldNum) {
-                            icons.push(`<span class="action-icon action-photo-del" title="Foto rimosse">-📷${oldNum - newNum}</span>`);
+                            icons.push(`-📷${oldNum - newNum}`);
                         } else {
-                            icons.push('<span class="action-icon action-photo-edit" title="Foto modificate">🔄📷</span>');
+                            icons.push('🔄📷');
                         }
                     } else {
-                        icons.push('<span class="action-icon action-photo-edit" title="Foto modificate">🔄📷</span>');
+                        icons.push('🔄📷');
                     }
                 }
             }
             
             // Se nessuna icona specifica, usa icona generica
             if (icons.length === 0) {
-                icons.push('<span class="action-icon action-update" title="Aggiornamento">📝</span>');
+                icons.push('📝');
             }
             
             return icons.join(' ');
+        }
+
+        // Controlla se l'importo è stato modificato o inserito
+        function hasValueChange(entry) {
+            const details = entry.details || '';
+            const action = entry.action || '';
+            const oldValue = entry.oldValue;
+            const newValue = entry.value;
+            
+            // Se è un nuovo inserimento con valore > 0
+            if (action === 'Inserimento' && newValue > 0) {
+                return true;
+            }
+            
+            // Se c'è oldValue diverso da newValue
+            if (oldValue !== null && oldValue !== undefined && oldValue !== newValue) {
+                return true;
+            }
+            
+            // Se nei dettagli c'è menzione di importo
+            if (details.includes('Importo:')) {
+                return true;
+            }
+            
+            return false;
         }
 
         async function openLogModal() {
@@ -2792,10 +3111,14 @@
                     const tr = document.createElement('tr');
                     const dayLabel = entry.dayShort || formatShortDayLabel(entry.day, entry.month);
                     const actionIcons = generateActionIcons(entry);
+                    const showValue = hasValueChange(entry);
+                    const valueDisplay = showValue 
+                        ? `<span class="log-value-changed">${formatCurrency(Number(entry.value) || 0)}</span>`
+                        : '<span class="log-value-empty">—</span>';
                     tr.innerHTML = `
-                        <td class="log-action">${actionIcons}</td>
                         <td>${dayLabel} <span class="log-month-small">${entry.month}</span></td>
-                        <td class="log-value">${formatCurrency(Number(entry.value) || 0)}</td>
+                        <td class="log-action">${actionIcons}</td>
+                        <td>${valueDisplay}</td>
                         <td class="log-user">${entry.username || '--'}</td>
                     `;
                     tr.addEventListener('click', () => openLogDetailModal(entry, false));
