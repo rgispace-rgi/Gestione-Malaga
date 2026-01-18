@@ -2762,6 +2762,12 @@
             return getCurrentUserRole() === 'admin';
         }
 
+        // Verifica se l'utente può modificare (admin o manager)
+        function canEdit() {
+            const role = getCurrentUserRole();
+            return role === 'admin' || role === 'manager';
+        }
+
         // ===== PANNELLO ADMIN UTENTI =====
         function openAdminPanel() {
             if (!isAdmin()) {
@@ -3573,9 +3579,20 @@
             const tbody = document.getElementById('dailyTableBody');
             tbody.innerHTML = '';
             
+            // Verifica se l'utente può modificare
+            const userCanEdit = canEdit();
+            
             monthData.dailyData.forEach((day, dayIndex) => {
                 const tr = document.createElement('tr');
                 tr.className = 'day-row-clickable';
+                
+                // Mostra pulsante edit solo se l'utente può modificare
+                const editButton = userCanEdit 
+                    ? `<button class="edit-day-button" id="edit-btn-${dayIndex}" onclick="event.stopPropagation(); openIncassoModal(${index}, ${dayIndex})">
+                            ${day.value > 0 ? 'Modifica' : 'Inserisci Incasso'}
+                       </button>`
+                    : '';
+                
                 tr.innerHTML = `
                     <td class="day-number">${day.day}</td>
                     <td class="day-name">${day.dayName}</td>
@@ -3585,9 +3602,7 @@
                             ${Array.isArray(day.photos) && day.photos.length > 0 ? `<span class="photo-indicator">📷 ${day.photos.length}</span>` : ''}
                             ${Array.isArray(day.photos) && day.photos.length > 0 ? buildMiniThumbsHtml(index, dayIndex) : ''}
                         </div>
-                        <button class="edit-day-button" id="edit-btn-${dayIndex}" onclick="event.stopPropagation(); openIncassoModal(${index}, ${dayIndex})">
-                            ${day.value > 0 ? 'Modifica' : 'Inserisci Incasso'}
-                        </button>
+                        ${editButton}
                     </td>
                 `;
                 tr.addEventListener('click', () => openDaySummaryModal(index, dayIndex));
@@ -3862,6 +3877,12 @@
         };
 
         function openIncassoModal(monthIndex, dayIndex) {
+            // Controllo permessi: solo admin e manager possono modificare
+            if (!canEdit()) {
+                alert('⛔ Accesso negato\n\nIl tuo ruolo (user) permette solo la visualizzazione.\n\nContatta un amministratore per modificare i dati.');
+                return;
+            }
+
             const monthData = data[monthIndex];
             const dayData = monthData.dailyData[dayIndex];
 
@@ -3981,6 +4002,12 @@
         }
 
         function updateDailyEntry(monthIndex, dayIndex, newValue, photos, logMeta = null) {
+            // Controllo permessi
+            if (!canEdit()) {
+                console.error('[Permessi] Tentativo di modifica non autorizzato');
+                return;
+            }
+
             const parsedValue = parseItalianNumber(newValue);
             const safePhotos = Array.isArray(photos) ? photos : [];
 
@@ -4029,6 +4056,13 @@
         }
 
         function confirmIncassoModal() {
+            // Controllo permessi di sicurezza
+            if (!canEdit()) {
+                alert('⛔ Accesso negato\n\nNon hai i permessi per modificare i dati.');
+                closeIncassoModal();
+                return;
+            }
+
             const monthIndex = incassoModalState.monthIndex;
             const dayIndex = incassoModalState.dayIndex;
             if (monthIndex === null || dayIndex === null) return;
@@ -4111,6 +4145,12 @@
         }
 
         function updateValue(index, newValue) {
+            // Controllo permessi
+            if (!canEdit()) {
+                alert('⛔ Accesso negato\n\nNon hai i permessi per modificare i dati.');
+                return;
+            }
+
             const parsedValue = parseItalianNumber(newValue);
             data[index].value = parsedValue;
             
