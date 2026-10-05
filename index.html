@@ -2065,11 +2065,12 @@
             data.forEach(monthData => {
                 monthData.dailyData.forEach(day => {
                     const key = `${monthData.month}_${day.day}`;
+                    // Senza foto: con le foto si supera il limite di localStorage
+                    // (le foto restano nella cache IndexedDB di Firestore)
                     entries[key] = {
                         month: monthData.month,
                         day: day.day,
-                        value: day.value,
-                        photos: day.photos || []
+                        value: day.value
                     };
                 });
             });
@@ -2091,7 +2092,7 @@
                 if (dayIndex < 0) return;
 
                 data[monthIndex].dailyData[dayIndex].value = Number(e.value) || 0;
-                data[monthIndex].dailyData[dayIndex].photos = Array.isArray(e.photos) ? e.photos : [];
+                if (Array.isArray(e.photos)) data[monthIndex].dailyData[dayIndex].photos = e.photos;
                 loaded++;
             });
 
@@ -2107,7 +2108,8 @@
 
         // Salva il registro nella cache
         function cacheLog(logEntries) {
-            saveToLocalCache(CACHE_KEYS.log, logEntries);
+            // Senza foto per restare nel limite di localStorage
+            saveToLocalCache(CACHE_KEYS.log, (logEntries || []).map(e => Object.assign({}, e, { photos: [] })));
         }
 
         // Carica registro dalla cache
@@ -2362,12 +2364,12 @@
             const payload = Object.assign({}, entry, { createdAt: F.serverTimestamp() });
             await F.addDoc(F.collection(db, 'malagaActivityLog'), payload);
             
-            // Aggiorna cache log dopo salvataggio
-            const logEntries = await firebaseFetchLog(500);
-            if (logEntries && logEntries.length > 0) {
-                cacheLog(logEntries);
-            }
-            
+            // Aggiorna cache log localmente (senza riscaricare tutto il registro)
+            const cachedLog = loadLogFromCache() || [];
+            cachedLog.unshift(entry);
+            if (cachedLog.length > 500) cachedLog.length = 500;
+            cacheLog(cachedLog);
+
             return true;
         }
 
@@ -2561,37 +2563,14 @@
                 
                 console.log('[Firebase] Connesso! Avvio realtime sync...');
                 
-                // Carica utenti da Firestore
-                await loadUsersFromFirestore();
-                updateAdminButtonVisibility();
+                // Utenti in parallelo: non blocca il caricamento dei dati
+                loadUsersFromFirestore().then(updateAdminButtonVisibility).catch(() => {});
 
-                // Fetch iniziale dei dati
-                for (let i = 0; i < data.length; i++) {
-                    const monthLabel = data[i].month;
-                    const entries = await firebaseFetchMonthEntries(monthLabel);
-                    if (!entries || !entries.length) continue;
-
-                    entries.forEach(e => {
-                        const day = Number(e.day);
-                        const dayIndex = data[i].dailyData.findIndex(d => Number(d.day) === day);
-                        if (dayIndex >= 0) {
-                            data[i].dailyData[dayIndex].value = Number(e.value) || 0;
-                            data[i].dailyData[dayIndex].photos = Array.isArray(e.photos) ? e.photos : [];
-                        }
-                    });
-
-                    const mergedTotal = data[i].dailyData.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
-                    data[i].value = Math.round(mergedTotal * 100) / 100;
-                }
+                // Incassi: copia locale di Firestore se completa, altrimenti download della stagione
+                await loadSeasonEntries(svc);
 
                 // Salva nella cache locale
                 cacheAllEntries();
-                
-                // Carica e cache il log
-                const logEntries = await firebaseFetchLog(500);
-                if (logEntries && logEntries.length > 0) {
-                    cacheLog(logEntries);
-                }
 
                 renderTable();
                 calculateStats();
@@ -2625,6 +2604,82 @@
         }
 
         // ===== REALTIME SYNC =====
+        // ===== SYNC INCREMENTALE =====
+        // Firestore tiene una copia locale (IndexedDB) di tutti gli incassi.
+        // All'apertura si mostrano quelli e dal server arrivano solo i documenti
+        // con updatedAt successivo all'ultimo aggiornamento ricevuto.
+        const SYNC_STATE_KEY = 'malagaSyncState_v1';
+        const SYNC_MARGIN_MS = 60 * 1000;
+
+        function loadSyncState() {
+            const st = loadFromLocalCache(SYNC_STATE_KEY);
+            const base = { lastUpdatedMs: 0, seasons: {} };
+            return (st && typeof st === 'object') ? Object.assign(base, st) : base;
+        }
+
+        function saveSyncState(st) {
+            saveToLocalCache(SYNC_STATE_KEY, st);
+        }
+
+        function docUpdatedMs(docSnap) {
+            const t = docSnap.get('updatedAt');
+            return (t && typeof t.toMillis === 'function') ? t.toMillis() : 0;
+        }
+
+        // Applica un documento incasso ai dati della stagione corrente
+        function applyEntryDoc(e) {
+            const monthIndex = data.findIndex(m => m.month === e.month);
+            if (monthIndex < 0) return false;
+            const dayIndex = data[monthIndex].dailyData.findIndex(d => Number(d.day) === Number(e.day));
+            if (dayIndex < 0) return false;
+            data[monthIndex].dailyData[dayIndex].value = Number(e.value) || 0;
+            data[monthIndex].dailyData[dayIndex].photos = Array.isArray(e.photos) ? e.photos : [];
+            const monthTotal = data[monthIndex].dailyData.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
+            data[monthIndex].value = Math.round(monthTotal * 100) / 100;
+            return true;
+        }
+
+        function seasonEntriesQuery(svc) {
+            const { db, f: F } = svc;
+            return F.query(
+                F.collection(db, 'malagaDailyEntries'),
+                F.where('month', 'in', data.map(m => m.month))
+            );
+        }
+
+        async function loadSeasonEntries(svc) {
+            const { f: F } = svc;
+            const q = seasonEntriesQuery(svc);
+            const st = loadSyncState();
+            const key = String(currentSeason);
+            const expected = st.seasons[key];
+
+            let cached = null;
+            try { cached = await F.getDocsFromCache(q); } catch (e) {}
+
+            // Cache valida solo se contiene almeno i documenti visti l'ultima volta
+            if (cached && st.lastUpdatedMs > 0 && expected != null && cached.size >= expected) {
+                cached.forEach(d => applyEntryDoc(d.data()));
+                console.log(`[Sync] Stagione ${seasonLabel(currentSeason)}: ${cached.size} incassi dalla cache`);
+                renderTable();
+                calculateStats();
+                return;
+            }
+
+            const snap = await F.getDocs(q);
+            let maxMs = 0;
+            snap.forEach(d => {
+                applyEntryDoc(d.data());
+                maxMs = Math.max(maxMs, docUpdatedMs(d));
+            });
+            st.seasons[key] = snap.size;
+            if (!st.lastUpdatedMs) st.lastUpdatedMs = maxMs || Date.now();
+            saveSyncState(st);
+            console.log(`[Sync] Stagione ${seasonLabel(currentSeason)}: ${snap.size} incassi dal server`);
+            renderTable();
+            calculateStats();
+        }
+
         async function startRealtimeSync() {
             const svc = await fbSvc();
             if (!svc.enabled) return;
@@ -2637,32 +2692,32 @@
             });
             window.__realtimeListeners = [];
             
-            // Listener per malagaDailyEntries (incassi giornalieri)
-            const entriesRef = F.collection(db, 'malagaDailyEntries');
-            const unsubEntries = F.onSnapshot(entriesRef, (snapshot) => {
-                console.log('[Realtime] Aggiornamento incassi ricevuto');
-                
-                snapshot.docChanges().forEach(change => {
-                    const e = change.doc.data();
-                    const monthLabel = e.month;
-                    const day = Number(e.day);
-                    
-                    // Trova il mese corrispondente
-                    const monthIndex = data.findIndex(m => m.month === monthLabel);
-                    if (monthIndex < 0) return;
-                    
-                    const dayIndex = data[monthIndex].dailyData.findIndex(d => Number(d.day) === day);
-                    if (dayIndex < 0) return;
-                    
-                    // Aggiorna i dati
-                    data[monthIndex].dailyData[dayIndex].value = Number(e.value) || 0;
-                    data[monthIndex].dailyData[dayIndex].photos = Array.isArray(e.photos) ? e.photos : [];
-                    
-                    // Ricalcola totale mese
-                    const monthTotal = data[monthIndex].dailyData.reduce((sum, d) => sum + (Number(d.value) || 0), 0);
-                    data[monthIndex].value = Math.round(monthTotal * 100) / 100;
+            // Listener per malagaDailyEntries: solo documenti modificati dopo l'ultimo sync
+            const sinceMs = Math.max(0, (loadSyncState().lastUpdatedMs || Date.now()) - SYNC_MARGIN_MS);
+            const changesQuery = F.query(
+                F.collection(db, 'malagaDailyEntries'),
+                F.where('updatedAt', '>', F.Timestamp.fromMillis(sinceMs))
+            );
+            const unsubEntries = F.onSnapshot(changesQuery, (snapshot) => {
+                const changes = snapshot.docChanges().filter(c => c.type !== 'removed');
+                if (!changes.length) return;
+                console.log(`[Realtime] ${changes.length} incassi aggiornati`);
+
+                let maxMs = 0;
+                changes.forEach(change => {
+                    maxMs = Math.max(maxMs, docUpdatedMs(change.doc));
+                    applyEntryDoc(change.doc.data());
                 });
-                
+
+                // Avanza il punto di sync solo con dati confermati dal server
+                if (!snapshot.metadata.fromCache) {
+                    const st = loadSyncState();
+                    if (maxMs > st.lastUpdatedMs) {
+                        st.lastUpdatedMs = maxMs;
+                        saveSyncState(st);
+                    }
+                }
+
                 // Aggiorna UI
                 renderTable();
                 calculateStats();
@@ -2925,7 +2980,7 @@
                     console.error('[Firebase] Errore init sync:', e);
                     updateConnectionStatus(false, 'Errore: ' + e.message);
                 }
-            }, 800);
+            }, 0);
         });
 
         // Sistema di Registro (Log)
@@ -4343,6 +4398,7 @@
 
         setupSeasonUI();
         initializeDailyData();
+        loadEntriesFromCache(); // dati dell'ultima apertura, subito visibili
         renderTable();
         setupIncassoAmountInput();
         calculateStats();
@@ -4358,8 +4414,9 @@
       import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js';
       import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js';
       import {
-        getFirestore,
-        collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
+        getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager,
+        CACHE_SIZE_UNLIMITED, getDocsFromCache, Timestamp,
+        collection,doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc,
         getDocs, query, where, orderBy, limit,
         onSnapshot,
         serverTimestamp
@@ -4394,7 +4451,19 @@
           console.log('[Firebase] Inizializzazione con config:', cfg.projectId);
           const app = initializeApp(cfg);
           const auth = getAuth(app);
-          const db = getFirestore(app);
+          // Cache persistente (IndexedDB): i dati restano sul dispositivo fra un'apertura e l'altra
+          let db;
+          try {
+            db = initializeFirestore(app, {
+              localCache: persistentLocalCache({
+                tabManager: persistentMultipleTabManager(),
+                cacheSizeBytes: CACHE_SIZE_UNLIMITED
+              })
+            });
+          } catch (e) {
+            console.warn('[Firebase] Cache persistente non disponibile:', e);
+            db = getFirestore(app);
+          }
 
           // Accesso anonimo (abilitalo in Firebase → Authentication)
           try {
@@ -4418,7 +4487,7 @@
           resolve({
             enabled: true,
             app, auth, db,
-            f: { collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, getDocs, query, where, orderBy, limit, onSnapshot, serverTimestamp },
+            f: { collection, doc, getDoc, setDoc, updateDoc, addDoc, deleteDoc, getDocs, getDocsFromCache, query, where, orderBy, limit, onSnapshot, serverTimestamp, Timestamp },
             s: {}
           });
         } catch (e) {
