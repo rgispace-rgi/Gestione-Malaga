@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Gestione Malaga - Stagione 25/26</title>
+    <title>Gestione Malaga - Stagione 26/27</title>
     <style>
         * {
             margin: 0;
@@ -704,6 +704,22 @@
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
         
+        .season-switch select {
+            margin-left: 6px;
+            padding: 4px 10px;
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            font-size: 1em;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .season-switch select option {
+            color: #1f2d3d;
+        }
+
         .subtitle {
             color: white;
             text-align: center;
@@ -1721,7 +1737,7 @@
     <div class="login-container" id="loginContainer">
         <div class="login-box">
             <h2>📊 Gestione Malaga</h2>
-            <div class="subtitle">Stagione 25/26</div>
+            <div class="subtitle" id="loginSeasonLabel">Stagione 26/27</div>
             <form id="loginForm" onsubmit="return handleLogin(event)">
                 <div class="form-group">
                     <label for="username">Username</label>
@@ -1745,7 +1761,10 @@
         
         <div class="container">
         <h1>📊 Gestione Malaga</h1>
-        <div class="subtitle">Stagione 25/26</div>
+        <div class="subtitle season-switch">
+            Stagione
+            <select id="seasonSelect" onchange="changeSeason(Number(this.value))" title="Cambia stagione"></select>
+        </div>
         
         <div class="card">
             <div class="stats">
@@ -2041,7 +2060,8 @@
 
         // Salva tutti gli incassi nella cache
         function cacheAllEntries() {
-            const entries = {};
+            // Parte dalla cache esistente per non perdere le altre stagioni
+            const entries = loadFromLocalCache(CACHE_KEYS.entries) || {};
             data.forEach(monthData => {
                 monthData.dailyData.forEach(day => {
                     const key = `${monthData.month}_${day.day}`;
@@ -3412,20 +3432,57 @@
             { limit: Infinity, percentage: 0.035 }
         ];
 
-        const data = [
-            {month: "Set 25", value: 0, year: 2025, monthNum: 9, dailyData: []},
-            {month: "Ott 25", value: 0, year: 2025, monthNum: 10, dailyData: []},
-            {month: "Nov 25", value: 0, year: 2025, monthNum: 11, dailyData: []},
-            {month: "Dic 25", value: 0, year: 2025, monthNum: 12, dailyData: []},
-            {month: "Gen 26", value: 0, year: 2026, monthNum: 1, dailyData: []},
-            {month: "Feb 26", value: 0, year: 2026, monthNum: 2, dailyData: []},
-            {month: "Mar 26", value: 0, year: 2026, monthNum: 3, dailyData: []},
-            {month: "Apr 26", value: 0, year: 2026, monthNum: 4, dailyData: []},
-            {month: "Mag 26", value: 0, year: 2026, monthNum: 5, dailyData: []},
-            {month: "Giu 26", value: 0, year: 2026, monthNum: 6, dailyData: []},
-            {month: "Lug 26", value: 0, year: 2026, monthNum: 7, dailyData: []},
-            {month: "Ago 26", value: 0, year: 2026, monthNum: 8, dailyData: []}
-        ];
+        // ===== Stagioni (settembre -> agosto) =====
+        // Per aggiungere una stagione: inserire l'anno di inizio in SEASONS.
+        const SEASONS = [2025, 2026];
+        const DEFAULT_SEASON = 2026; // stagione mostrata all'apertura
+        const MONTH_NAMES = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'];
+
+        function seasonLabel(startYear) {
+            const yy = y => String(y % 100).padStart(2, '0');
+            return `${yy(startYear)}/${yy(startYear + 1)}`;
+        }
+
+        function buildSeasonMonths(startYear) {
+            const months = [];
+            for (let i = 0; i < 12; i++) {
+                const m0 = (8 + i) % 12; // parte da settembre
+                const year = startYear + (8 + i >= 12 ? 1 : 0);
+                months.push({
+                    month: `${MONTH_NAMES[m0]} ${String(year % 100).padStart(2, '0')}`,
+                    value: 0, year: year, monthNum: m0 + 1, dailyData: []
+                });
+            }
+            return months;
+        }
+
+        // La scelta vale solo per la sessione: a ogni nuova apertura si parte da DEFAULT_SEASON
+        let currentSeason = DEFAULT_SEASON;
+        try {
+            const saved = Number(sessionStorage.getItem('malagaSeason'));
+            if (SEASONS.includes(saved)) currentSeason = saved;
+        } catch (e) {}
+
+        function changeSeason(startYear) {
+            if (!SEASONS.includes(startYear) || startYear === currentSeason) return;
+            try { sessionStorage.setItem('malagaSeason', String(startYear)); } catch (e) {}
+            location.reload();
+        }
+
+        function setupSeasonUI() {
+            const label = seasonLabel(currentSeason);
+            document.title = `Gestione Malaga - Stagione ${label}`;
+            const loginSub = document.getElementById('loginSeasonLabel');
+            if (loginSub) loginSub.textContent = `Stagione ${label}`;
+            const sel = document.getElementById('seasonSelect');
+            if (sel) {
+                sel.innerHTML = SEASONS.slice().reverse()
+                    .map(y => `<option value="${y}" ${y === currentSeason ? 'selected' : ''}>${seasonLabel(y)}</option>`)
+                    .join('');
+            }
+        }
+
+        const data = buildSeasonMonths(currentSeason);
 
         const september2025Data = {
             1: 408.90,
@@ -4284,6 +4341,7 @@
             document.getElementById('totalImport').textContent = 'Clicca per vedere';
         }
 
+        setupSeasonUI();
         initializeDailyData();
         renderTable();
         setupIncassoAmountInput();
